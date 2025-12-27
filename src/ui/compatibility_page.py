@@ -1,7 +1,10 @@
 """配对分析页面"""
 import streamlit as st
 from datetime import datetime
-from src.core import calculate_bazi, analyze_wuxing, calculate_compatibility
+from src.core import (
+    calculate_bazi, analyze_wuxing, calculate_compatibility,
+    analyze_shishen, convert_to_true_solar_time
+)
 from src.models.bazi_models import Gender
 from src.viz import (
     create_compatibility_gauge,
@@ -13,17 +16,26 @@ from .common import render_pillar_display
 
 def render_compatibility_analysis(info1: dict, info2: dict):
     """渲染配对分析结果"""
-    # 计算双方八字
+    # 计算双方八字（支持真太阳时）
     dt1 = datetime.combine(info1["date"], info1["time"])
     dt2 = datetime.combine(info2["date"], info2["time"])
+    
+    place1, place2 = info1["place"] or None, info2["place"] or None
+    if place1:
+        dt1 = convert_to_true_solar_time(dt1, place1)
+    if place2:
+        dt2 = convert_to_true_solar_time(dt2, place2)
+    
     gender1 = Gender.MALE if info1["gender"] == "男" else Gender.FEMALE
     gender2 = Gender.MALE if info2["gender"] == "男" else Gender.FEMALE
     
     with st.spinner("正在分析配对..."):
-        bazi1 = calculate_bazi(dt1, gender1, info1["place"] or None)
-        bazi2 = calculate_bazi(dt2, gender2, info2["place"] or None)
+        bazi1 = calculate_bazi(dt1, gender1, place1)
+        bazi2 = calculate_bazi(dt2, gender2, place2)
         wuxing1 = analyze_wuxing(bazi1)
         wuxing2 = analyze_wuxing(bazi2)
+        shishen1 = analyze_shishen(bazi1)
+        shishen2 = analyze_shishen(bazi2)
         result = calculate_compatibility(bazi1, bazi2, wuxing1, wuxing2)
     
     # 配对得分
@@ -42,10 +54,12 @@ def render_compatibility_analysis(info1: dict, info2: dict):
         st.markdown("##### 本人八字")
         pillars1 = [bazi1.year_pillar, bazi1.month_pillar, bazi1.day_pillar, bazi1.hour_pillar]
         _render_mini_pillars(pillars1)
+        st.caption(f"格局: **{shishen1.pattern}** | 日主: {wuxing1.day_master.value}({wuxing1.day_master_strength})")
     with col2:
         st.markdown("##### 对方八字")
         pillars2 = [bazi2.year_pillar, bazi2.month_pillar, bazi2.day_pillar, bazi2.hour_pillar]
         _render_mini_pillars(pillars2)
+        st.caption(f"格局: **{shishen2.pattern}** | 日主: {wuxing2.day_master.value}({wuxing2.day_master_strength})")
     
     # 五行对比
     st.subheader("🌟 五行互补分析")
