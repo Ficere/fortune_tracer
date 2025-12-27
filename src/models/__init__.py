@@ -13,6 +13,11 @@ from .bazi_models import (
     DaYunInfo,
     ShiShenInfo,
     ShiShenAnalysis,
+    ShenShaInfo,
+    ShenShaAnalysis,
+    NaYinInfo,
+    LiuNianFortune,
+    LiuNianAnalysis,
     AIInterpretation,
     FortuneReport,
 )
@@ -45,6 +50,11 @@ __all__ = [
     "DaYunInfo",
     "ShiShenInfo",
     "ShiShenAnalysis",
+    "ShenShaInfo",
+    "ShenShaAnalysis",
+    "NaYinInfo",
+    "LiuNianFortune",
+    "LiuNianAnalysis",
     "AIInterpretation",
     "FortuneReport",
     # compatibility_models

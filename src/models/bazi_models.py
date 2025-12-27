@@ -137,6 +137,52 @@ class ShiShenAnalysis(BaseModel):
     analysis: str = Field("", description="分析说明")
 
 
+class ShenShaInfo(BaseModel):
+    """单个神煞信息"""
+    name: str = Field(..., description="神煞名称")
+    quality: str = Field(..., description="吉凶属性")
+    description: str = Field("", description="描述说明")
+    positions: list[str] = Field(default_factory=list, description="出现位置")
+
+
+class ShenShaAnalysis(BaseModel):
+    """神煞分析结果"""
+    shensha_list: list[ShenShaInfo] = Field(default_factory=list, description="神煞列表")
+    ji_shen: list[str] = Field(default_factory=list, description="吉神")
+    xiong_sha: list[str] = Field(default_factory=list, description="凶煞")
+    summary: str = Field("", description="总结")
+
+
+class NaYinInfo(BaseModel):
+    """纳音信息"""
+    pillar_name: str = Field(..., description="柱名")
+    ganzhi: str = Field(..., description="干支")
+    nayin: str = Field(..., description="纳音")
+    wuxing: str = Field("", description="五行")
+    description: str = Field("", description="描述")
+
+
+class LiuNianFortune(BaseModel):
+    """单年流年运势"""
+    year: int = Field(..., description="年份")
+    ganzhi: str = Field(..., description="干支")
+    wuxing: str = Field(..., description="五行")
+    nayin: str = Field("", description="纳音")
+    score: int = Field(..., ge=0, le=100, description="运势分数")
+    level: str = Field(..., description="运势等级")
+    key_events: list[str] = Field(default_factory=list, description="主要事项")
+    advice: list[str] = Field(default_factory=list, description="建议")
+    relations: list[str] = Field(default_factory=list, description="与八字关系")
+
+
+class LiuNianAnalysis(BaseModel):
+    """流年分析结果"""
+    liunian_list: list[LiuNianFortune] = Field(default_factory=list, description="流年列表")
+    summary: str = Field("", description="总结")
+    best_years: list[int] = Field(default_factory=list, description="较好年份")
+    caution_years: list[int] = Field(default_factory=list, description="需注意年份")
+
+
 class AIInterpretation(BaseModel):
     """AI解读结果"""
     personality: str = Field(..., description="性格特点")

@@ -15,6 +15,10 @@ class BaziAnalyzeRequest(BaseModel):
     """八字分析请求"""
     birth_info: BirthInfo
     api_key: Optional[str] = Field(None, description="OpenAI API Key")
+    include_dayun: bool = Field(True, description="是否包含大运")
+    include_shishen: bool = Field(True, description="是否包含十神")
+    include_shensha: bool = Field(True, description="是否包含神煞")
+    include_nayin: bool = Field(True, description="是否包含纳音")
 
 
 class CompatibilityRequest(BaseModel):
@@ -29,6 +33,32 @@ class DateSelectionRequest(BaseModel):
     event_type: str = Field(..., description="事件类型: 结婚/开业/搬家/出行/签约")
     start_date: date = Field(default_factory=date.today, description="起始日期")
     search_days: int = Field(30, ge=7, le=90, description="搜索天数")
+
+
+class DayunRequest(BaseModel):
+    """大运计算请求"""
+    birth_info: BirthInfo
+    num_dayun: int = Field(8, ge=1, le=12, description="大运数量")
+
+
+class ShiShenRequest(BaseModel):
+    """十神分析请求"""
+    birth_info: BirthInfo
+
+
+class ShenShaRequest(BaseModel):
+    """神煞分析请求"""
+    birth_info: BirthInfo
+
+
+class NaYinRequest(BaseModel):
+    """纳音分析请求"""
+    birth_info: BirthInfo
+
+
+class YearNaYinRequest(BaseModel):
+    """年命纳音请求"""
+    year: int = Field(..., ge=1900, le=2100, description="年份")
 
 
 class APIError(BaseModel):
