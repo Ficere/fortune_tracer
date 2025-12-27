@@ -28,6 +28,12 @@ from .exceptions import (
     CalculationError,
     AIInterpretationError,
 )
+from .bonefate import (
+    calculate_bone_weight,
+    get_bone_poem,
+    get_weight_level,
+    analyze_bonefate,
+)
 
 __all__ = [
     # 核心计算
@@ -71,5 +77,10 @@ __all__ = [
     "BirthInfoError",
     "CalculationError",
     "AIInterpretationError",
+    # 称骨算命
+    "calculate_bone_weight",
+    "get_bone_poem",
+    "get_weight_level",
+    "analyze_bonefate",
 ]
 
