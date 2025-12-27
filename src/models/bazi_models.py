@@ -73,13 +73,13 @@ class BaziChart(BaseModel):
 
 class WuxingCount(BaseModel):
     """五行统计"""
-    mu: int = Field(0, description="木")
-    huo: int = Field(0, description="火")
-    tu: int = Field(0, description="土")
-    jin: int = Field(0, description="金")
-    shui: int = Field(0, description="水")
+    mu: float = Field(0, description="木")
+    huo: float = Field(0, description="火")
+    tu: float = Field(0, description="土")
+    jin: float = Field(0, description="金")
+    shui: float = Field(0, description="水")
     
-    def to_dict(self) -> dict[str, int]:
+    def to_dict(self) -> dict[str, float]:
         return {"木": self.mu, "火": self.huo, "土": self.tu, "金": self.jin, "水": self.shui}
 
 
@@ -97,6 +97,44 @@ class YearFortune(BaseModel):
     year: int
     score: float = Field(..., ge=0, le=100)
     description: str
+
+
+class DaYun(BaseModel):
+    """单步大运"""
+    ganzhi: str = Field(..., description="干支")
+    tiangan: str = Field(..., description="天干")
+    dizhi: str = Field(..., description="地支")
+    wuxing: str = Field(..., description="五行")
+    start_age: int = Field(..., description="起始年龄")
+    end_age: int = Field(..., description="结束年龄")
+    start_year: int = Field(..., description="起始年份")
+    end_year: int = Field(..., description="结束年份")
+
+
+class DaYunInfo(BaseModel):
+    """大运信息"""
+    direction: str = Field(..., description="顺逆方向")
+    start_age: int = Field(..., description="起运年龄")
+    extra_months: int = Field(0, description="额外月份")
+    dayun_list: list[DaYun] = Field(default_factory=list, description="大运列表")
+
+
+class ShiShenInfo(BaseModel):
+    """单柱十神信息"""
+    pillar_name: str = Field(..., description="柱名")
+    tiangan: str = Field(..., description="天干")
+    dizhi: str = Field(..., description="地支")
+    tiangan_shishen: str = Field(..., description="天干十神")
+    dizhi_shishen: list[str] = Field(default_factory=list, description="地支藏干十神")
+    dizhi_cangan: list[str] = Field(default_factory=list, description="地支藏干")
+
+
+class ShiShenAnalysis(BaseModel):
+    """十神分析结果"""
+    shishen_list: list[ShiShenInfo] = Field(default_factory=list, description="四柱十神")
+    shishen_count: dict[str, float] = Field(default_factory=dict, description="十神统计")
+    pattern: str = Field("", description="格局")
+    analysis: str = Field("", description="分析说明")
 
 
 class AIInterpretation(BaseModel):

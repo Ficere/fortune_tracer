@@ -1,7 +1,10 @@
 """八字分析页面"""
 import streamlit as st
 from datetime import datetime
-from src.core import calculate_bazi, analyze_wuxing
+from src.core import (
+    calculate_bazi, analyze_wuxing, calculate_dayun,
+    analyze_shishen, convert_to_true_solar_time
+)
 from src.ai.interpreter import interpret_bazi, calculate_year_fortunes
 from src.viz import (
     create_wuxing_radar, create_fortune_kline,
@@ -17,16 +20,30 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
     birth_dt = datetime.combine(birth_info["date"], birth_info["time"])
     gender_enum = Gender.MALE if birth_info["gender"] == "男" else Gender.FEMALE
     
+    # 真太阳时转换
+    place = birth_info["place"] or None
+    if place:
+        true_solar_dt = convert_to_true_solar_time(birth_dt, place)
+    else:
+        true_solar_dt = birth_dt
+    
     with st.spinner("正在计算八字..."):
-        bazi = calculate_bazi(birth_dt, gender_enum, birth_info["place"] or None)
+        bazi = calculate_bazi(true_solar_dt, gender_enum, place)
         wuxing = analyze_wuxing(bazi)
+        shishen = analyze_shishen(bazi)
+        dayun_info = calculate_dayun(bazi)
         fortunes = calculate_year_fortunes(bazi, wuxing, years=10)
     
     # 八字展示
     st.subheader("📜 您的生辰八字")
+    if place and true_solar_dt != birth_dt:
+        st.caption(f"📍 已转换为{place}真太阳时")
     pillars = [bazi.year_pillar, bazi.month_pillar, bazi.day_pillar, bazi.hour_pillar]
     names = ["年柱", "月柱", "日柱", "时柱"]
     render_pillar_display(pillars, names)
+    
+    # 十神展示
+    st.caption(f"格局: **{shishen.pattern}** | {shishen.analysis}")
     
     # 五行分析
     st.subheader("🌟 五行分析")
@@ -39,7 +56,15 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
         st.markdown(f"**忌神**: {', '.join(w.value for w in wuxing.unfavorable)}")
         counts = wuxing.counts.to_dict()
         for wx, count in counts.items():
-            st.progress(min(count / 5, 1.0), text=f"{wx}: {count}")
+            st.progress(min(count / 5, 1.0), text=f"{wx}: {count:.1f}")
+    
+    # 十神详情
+    st.subheader("🔮 十神分析")
+    _render_shishen_table(shishen)
+    
+    # 大运展示
+    st.subheader("🛤️ 大运排盘")
+    _render_dayun(dayun_info)
     
     # 宫位图
     st.subheader("🏛️ 八字宫位")
@@ -85,4 +110,47 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
         file_name=f"fortune_report_{birth_info['date']}.json",
         mime="application/json"
     )
+
+
+def _render_shishen_table(shishen):
+    """渲染十神表格"""
+    cols = st.columns(4)
+    for col, info in zip(cols, shishen.shishen_list):
+        with col:
+            st.markdown(f"""
+            <div style='background:#f8fafc;padding:10px;border-radius:8px;
+                text-align:center;border:1px solid #e2e8f0'>
+                <div style='font-size:12px;color:#64748b'>{info.pillar_name}</div>
+                <div style='font-size:16px;font-weight:bold;color:#334155'>
+                    {info.tiangan} <span style='color:#6366f1'>({info.tiangan_shishen})</span>
+                </div>
+                <div style='font-size:16px;font-weight:bold;color:#334155'>
+                    {info.dizhi}
+                </div>
+                <div style='font-size:10px;color:#94a3b8'>
+                    藏: {', '.join(info.dizhi_shishen) or '-'}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+def _render_dayun(dayun_info):
+    """渲染大运"""
+    st.caption(
+        f"起运: **{dayun_info.start_age}岁{dayun_info.extra_months}个月** | "
+        f"方向: **{dayun_info.direction}**"
+    )
+    
+    cols = st.columns(len(dayun_info.dayun_list))
+    for col, dy in zip(cols, dayun_info.dayun_list):
+        with col:
+            st.markdown(f"""
+            <div style='background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                padding:8px;border-radius:8px;text-align:center;color:white;
+                font-size:12px'>
+                <div style='font-size:16px;font-weight:bold'>{dy.ganzhi}</div>
+                <div>{dy.start_age}-{dy.end_age}岁</div>
+                <div style='opacity:0.8'>{dy.start_year}-{dy.end_year}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
