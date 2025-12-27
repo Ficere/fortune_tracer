@@ -1,10 +1,7 @@
 """择日页面"""
 import streamlit as st
 from datetime import datetime, date
-from src.core import (
-    calculate_bazi, analyze_wuxing, select_dates,
-    convert_to_true_solar_time
-)
+from src.core import calculate_bazi, analyze_wuxing, select_dates
 from src.models import EventType
 from src.models.bazi_models import Gender
 from src.models.date_selection_models import DayQuality
@@ -23,16 +20,12 @@ QUALITY_STYLES = {
 
 def render_date_selection(birth_info: dict, event_type: str, search_days: int):
     """渲染择日结果"""
-    # 计算八字（支持真太阳时）
+    # 计算八字
     birth_dt = datetime.combine(birth_info["date"], birth_info["time"])
     gender_enum = Gender.MALE if birth_info["gender"] == "男" else Gender.FEMALE
-    place = birth_info["place"] or None
-    
-    if place:
-        birth_dt = convert_to_true_solar_time(birth_dt, place)
     
     with st.spinner("正在择日..."):
-        bazi = calculate_bazi(birth_dt, gender_enum, place)
+        bazi = calculate_bazi(birth_dt, gender_enum, birth_info["place"] or None)
         wuxing = analyze_wuxing(bazi)
         
         event_map = {
