@@ -34,15 +34,15 @@ JIE_NAMES = [
 
 
 def _get_sun_longitude(dt: datetime) -> float:
-    """获取指定时间的太阳黄经（度）"""
-    # 转换为ephem时间
+    """获取指定时间的地心太阳黄经（度）"""
     sun = ephem.Sun()
     observer = ephem.Observer()
     observer.date = ephem.Date(dt)
     sun.compute(observer)
     
-    # 获取黄经（弧度转度数）
-    longitude = float(sun.hlong) * 180.0 / math.pi
+    # 使用黄道坐标获取地心黄经（弧度转度数）
+    ecliptic = ephem.Ecliptic(sun)
+    longitude = float(ecliptic.lon) * 180.0 / math.pi
     return longitude % 360
 
 

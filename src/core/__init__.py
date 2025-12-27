@@ -14,6 +14,13 @@ from .cache import cached, get_cache, clear_cache, cache_stats
 from .solar_time import convert_to_true_solar_time, get_time_correction_info
 from .config import get_settings, Settings
 from .logging import get_logger, setup_logging
+from .auxiliary import (
+    calculate_ming_gong,
+    calculate_tai_yuan,
+    calculate_shen_gong,
+    calculate_auxiliary,
+    calculate_auxiliary_from_bazi,
+)
 from .exceptions import (
     FortuneTracerError,
     ValidationError,
@@ -36,6 +43,12 @@ __all__ = [
     "calculate_nayin",
     "get_year_nayin",
     "calculate_liunian",
+    # 辅助宫位
+    "calculate_ming_gong",
+    "calculate_tai_yuan",
+    "calculate_shen_gong",
+    "calculate_auxiliary",
+    "calculate_auxiliary_from_bazi",
     # 节气和时间
     "get_jieqi_month",
     "is_before_lichun",

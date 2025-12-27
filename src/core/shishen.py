@@ -1,13 +1,4 @@
-"""十神分析模块
-
-十神是根据日主（日柱天干）与其他天干的五行生克关系和阴阳属性确定的。
-
-生我者：印（偏印/正印）
-我生者：食伤（食神/伤官）
-克我者：官杀（正官/七杀）
-我克者：财（偏财/正财）
-同我者：比劫（比肩/劫财）
-"""
+"""十神分析模块 - 日主与其他天干的五行生克阴阳关系"""
 from src.models import BaziChart
 from src.models.bazi_models import ShiShenInfo, ShiShenAnalysis
 from .constants import TIANGAN, TIANGAN_WUXING, WUXING_SHENG, WUXING_KE, DIZHI_CANGAN

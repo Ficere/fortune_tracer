@@ -173,3 +173,167 @@ class TestDateSelectionEndpoint:
             "search_days": 100  # 超过最大值 90
         })
         assert response.status_code == 422
+
+
+class TestAdvancedEndpoints:
+    """高级分析API测试"""
+    
+    @pytest.fixture
+    def birth_info(self):
+        """通用出生信息"""
+        return {
+            "birth_datetime": "1990-01-15T08:30:00",
+            "gender": "男",
+            "birth_place": "北京"
+        }
+    
+    def test_dayun_success(self, client, birth_info):
+        """大运计算应成功"""
+        response = client.post("/api/advanced/dayun", json={
+            "birth_info": birth_info,
+            "num_dayun": 8
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "direction" in data
+        assert "start_age" in data
+        assert "dayun_list" in data
+        assert len(data["dayun_list"]) == 8
+    
+    def test_dayun_custom_count(self, client, birth_info):
+        """大运计算数量可自定义"""
+        response = client.post("/api/advanced/dayun", json={
+            "birth_info": birth_info,
+            "num_dayun": 5
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["dayun_list"]) == 5
+    
+    def test_shishen_success(self, client, birth_info):
+        """十神分析应成功"""
+        response = client.post("/api/advanced/shishen", json={
+            "birth_info": birth_info
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "shishen_list" in data
+        assert "shishen_count" in data
+        assert "pattern" in data
+        assert "analysis" in data
+    
+    def test_shensha_success(self, client, birth_info):
+        """神煞分析应成功"""
+        response = client.post("/api/advanced/shensha", json={
+            "birth_info": birth_info
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "shensha_list" in data
+        assert "summary" in data
+    
+    def test_nayin_success(self, client, birth_info):
+        """纳音分析应成功"""
+        response = client.post("/api/advanced/nayin", json={
+            "birth_info": birth_info
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 4  # 四柱
+        for item in data:
+            assert "pillar_name" in item
+            assert "ganzhi" in item
+            assert "nayin" in item
+            assert "wuxing" in item
+            assert "description" in item
+    
+    def test_year_nayin_success(self, client):
+        """年命纳音应成功"""
+        response = client.post("/api/advanced/year-nayin", json={
+            "year": 1984
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "nayin" in data
+        assert "wuxing" in data
+    
+    def test_year_nayin_various_years(self, client):
+        """测试多个年份的年命纳音"""
+        years = [1960, 1984, 2000, 2024]
+        for year in years:
+            response = client.post("/api/advanced/year-nayin", json={
+                "year": year
+            })
+            assert response.status_code == 200
+    
+    def test_auxiliary_success(self, client, birth_info):
+        """辅助宫位计算应成功"""
+        response = client.post("/api/advanced/auxiliary", json={
+            "birth_info": birth_info
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "ming_gong" in data
+        assert "tai_yuan" in data
+        assert "shen_gong" in data
+        
+        # 验证每个宫位的结构
+        for gong_name in ["ming_gong", "tai_yuan", "shen_gong"]:
+            gong = data[gong_name]
+            assert "name" in gong
+            assert "tiangan" in gong
+            assert "dizhi" in gong
+            assert "ganzhi" in gong
+            assert "description" in gong
+    
+    def test_auxiliary_female(self, client):
+        """女性辅助宫位计算"""
+        response = client.post("/api/advanced/auxiliary", json={
+            "birth_info": {
+                "birth_datetime": "1992-06-20T14:00:00",
+                "gender": "女"
+            }
+        })
+        assert response.status_code == 200
+
+
+class TestAPIValidation:
+    """API验证测试"""
+    
+    def test_invalid_datetime_format(self, client):
+        """无效日期格式应返回422"""
+        response = client.post("/api/bazi/analyze", json={
+            "birth_info": {
+                "birth_datetime": "invalid-date",
+                "gender": "男"
+            }
+        })
+        assert response.status_code == 422
+    
+    def test_missing_required_field(self, client):
+        """缺少必需字段应返回422"""
+        response = client.post("/api/bazi/analyze", json={
+            "birth_info": {
+                "gender": "男"
+            }
+        })
+        assert response.status_code == 422
+    
+    def test_dayun_invalid_count(self, client):
+        """大运数量超出范围应返回422"""
+        response = client.post("/api/advanced/dayun", json={
+            "birth_info": {
+                "birth_datetime": "1990-01-15T08:30:00",
+                "gender": "男"
+            },
+            "num_dayun": 20  # 超过最大值12
+        })
+        assert response.status_code == 422
+    
+    def test_year_nayin_invalid_year(self, client):
+        """年份超出范围应返回422"""
+        response = client.post("/api/advanced/year-nayin", json={
+            "year": 1800  # 低于最小值1900
+        })
+        assert response.status_code == 422

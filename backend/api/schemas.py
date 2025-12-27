@@ -61,6 +61,27 @@ class YearNaYinRequest(BaseModel):
     year: int = Field(..., ge=1900, le=2100, description="年份")
 
 
+class AuxiliaryRequest(BaseModel):
+    """辅助宫位请求"""
+    birth_info: BirthInfo
+
+
+class GongInfoResponse(BaseModel):
+    """宫位信息响应"""
+    name: str
+    tiangan: str
+    dizhi: str
+    ganzhi: str
+    description: str
+
+
+class AuxiliaryResponse(BaseModel):
+    """辅助宫位响应"""
+    ming_gong: GongInfoResponse
+    tai_yuan: GongInfoResponse
+    shen_gong: GongInfoResponse
+
+
 class APIError(BaseModel):
     """API错误响应"""
     code: str
