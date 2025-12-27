@@ -1,7 +1,7 @@
 """FastAPI后端主入口"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.api.routes import bazi, compatibility, date_selection, advanced
+from backend.api.routes import bazi, compatibility, date_selection
 
 app = FastAPI(
     title="Fortune Tracer API",
@@ -24,7 +24,6 @@ app.add_middleware(
 app.include_router(bazi.router, prefix="/api")
 app.include_router(compatibility.router, prefix="/api")
 app.include_router(date_selection.router, prefix="/api")
-app.include_router(advanced.router, prefix="/api")
 
 
 @app.get("/")
