@@ -97,32 +97,37 @@ def _get_default_interpretation(bazi: BaziChart, wuxing: WuxingAnalysis) -> AIIn
 def calculate_year_fortunes(
     bazi: BaziChart,
     wuxing: WuxingAnalysis,
-    years: int = 10
+    years: int = 91
 ) -> list[YearFortune]:
-    """计算流年运势"""
-    from datetime import datetime
+    """计算流年运势（从出生到指定年数）
+
+    Args:
+        bazi: 八字信息
+        wuxing: 五行分析
+        years: 计算年数（默认91年，即0-90岁）
+    """
     from src.core.constants import TIANGAN, DIZHI, TIANGAN_WUXING
-    
-    current_year = datetime.now().year
+
+    birth_year = bazi.birth_datetime.year
     fortunes = []
-    
-    for i in range(years):
-        year = current_year + i
+
+    for age in range(years):
+        year = birth_year + age
         gan_idx = (year - 4) % 10
         zhi_idx = (year - 4) % 12
         year_wx = TIANGAN_WUXING[TIANGAN[gan_idx]]
-        
+
         # 基于喜忌计算分数
         favorable_wx = [w.value for w in wuxing.favorable]
         score = 70 if year_wx in favorable_wx else 50
         score += (hash(f"{year}{bazi.day_pillar.display}") % 20)
         score = min(max(score, 30), 95)
-        
+
         fortunes.append(YearFortune(
             year=year,
             score=score,
-            description=f"{TIANGAN[gan_idx]}{DIZHI[zhi_idx]}年"
+            description=f"{age}岁 {TIANGAN[gan_idx]}{DIZHI[zhi_idx]}年"
         ))
-    
+
     return fortunes
 

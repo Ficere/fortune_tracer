@@ -18,6 +18,7 @@ dependencies = [
     "uvicorn>=0.40.0",
     "ephem>=4.0.0",
     "httpx>=0.28.0",
+    "watchdog>=6.0.0",
 ]
 
 [project.optional-dependencies]

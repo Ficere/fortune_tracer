@@ -4,14 +4,19 @@ import streamlit as st
 from datetime import datetime
 from src.core import analyze_bonefate
 from src.models import BoneFateResult
+from src.ai import get_or_create_session
+from .chat_component import render_chat_section
 
 
-def render_bonefate_analysis(birth_info: dict, is_lunar: bool = False):
+def render_bonefate_analysis(
+    birth_info: dict, is_lunar: bool = False, api_key: str | None = None
+):
     """渲染称骨算命分析结果
-    
+
     Args:
         birth_info: 包含 date, time 的字典
         is_lunar: 是否为农历日期
+        api_key: OpenAI API Key
     """
     birth_dt = datetime.combine(birth_info["date"], birth_info["time"])
     
@@ -42,6 +47,14 @@ def render_bonefate_analysis(birth_info: dict, is_lunar: bool = False):
         file_name=f"bonefate_report_{birth_info['date']}.json",
         mime="application/json",
     )
+
+    # LLM对话区域
+    st.divider()
+    session = get_or_create_session(st.session_state, "bonefate")
+    session.set_context("骨重", result.weight_display)
+    session.set_context("命格等级", result.level)
+    session.set_context("命格标题", result.title)
+    render_chat_section(session, api_key, "bonefate", "🤖 称骨问答")
 
 
 def _render_weight_display(result: BoneFateResult):

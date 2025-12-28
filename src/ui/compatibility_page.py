@@ -11,10 +11,12 @@ from src.viz import (
     create_wuxing_comparison,
     create_relations_sunburst
 )
+from src.ai import get_or_create_session
 from .common import render_pillar_display
+from .chat_component import render_chat_section
 
 
-def render_compatibility_analysis(info1: dict, info2: dict):
+def render_compatibility_analysis(info1: dict, info2: dict, api_key: str | None = None):
     """渲染配对分析结果"""
     # 计算双方八字（支持真太阳时）
     dt1 = datetime.combine(info1["date"], info1["time"])
@@ -44,7 +46,7 @@ def render_compatibility_analysis(info1: dict, info2: dict):
     with col2:
         st.plotly_chart(
             create_compatibility_gauge(result.total_score, result.grade),
-            use_container_width=True
+            width="stretch"
         )
     
     # 双方八字对比
@@ -67,7 +69,7 @@ def render_compatibility_analysis(info1: dict, info2: dict):
     with col1:
         st.plotly_chart(
             create_wuxing_comparison(wuxing1, wuxing2),
-            use_container_width=True
+            width="stretch"
         )
     with col2:
         wx = result.wuxing_compat
@@ -82,7 +84,7 @@ def render_compatibility_analysis(info1: dict, info2: dict):
     st.subheader("🔗 干支关系分析")
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.plotly_chart(create_relations_sunburst(result), use_container_width=True)
+        st.plotly_chart(create_relations_sunburst(result), width="stretch")
     with col2:
         gz = result.ganzhi_relations
         if gz.tiangan_he:
@@ -122,6 +124,14 @@ def render_compatibility_analysis(info1: dict, info2: dict):
         file_name=f"compatibility_{info1['date']}_{info2['date']}.json",
         mime="application/json"
     )
+
+    # LLM对话区域
+    st.divider()
+    session = get_or_create_session(st.session_state, "compatibility")
+    session.set_context("配对得分", f"{result.total_score}分 ({result.grade})")
+    session.set_context("五行平衡", result.wuxing_compat.analysis)
+    session.set_context("主要建议", "; ".join(result.advice.suggestions[:2]))
+    render_chat_section(session, api_key, "compatibility", "🤖 配对问答")
 
 
 def _render_mini_pillars(pillars: list):

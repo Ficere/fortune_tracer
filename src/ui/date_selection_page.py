@@ -9,6 +9,8 @@ from src.models import EventType
 from src.models.bazi_models import Gender
 from src.models.date_selection_models import DayQuality
 from src.viz import create_date_calendar, create_date_timeline
+from src.ai import get_or_create_session
+from .chat_component import render_chat_section
 
 
 # 质量对应样式
@@ -21,7 +23,9 @@ QUALITY_STYLES = {
 }
 
 
-def render_date_selection(birth_info: dict, event_type: str, search_days: int):
+def render_date_selection(
+    birth_info: dict, event_type: str, search_days: int, api_key: str | None = None
+):
     """渲染择日结果"""
     # 计算八字（支持真太阳时）
     birth_dt = datetime.combine(birth_info["date"], birth_info["time"])
@@ -73,9 +77,9 @@ def render_date_selection(birth_info: dict, event_type: str, search_days: int):
     # 可视化
     col1, col2 = st.columns([1.2, 0.8])
     with col1:
-        st.plotly_chart(create_date_calendar(result), use_container_width=True)
+        st.plotly_chart(create_date_calendar(result), width="stretch")
     with col2:
-        st.plotly_chart(create_date_timeline(result), use_container_width=True)
+        st.plotly_chart(create_date_timeline(result), width="stretch")
     
     # 推荐吉日详情
     st.subheader("🌟 推荐吉日")
@@ -112,4 +116,14 @@ def render_date_selection(birth_info: dict, event_type: str, search_days: int):
         file_name=f"date_selection_{event_type}_{date.today()}.json",
         mime="application/json"
     )
+
+    # LLM对话区域
+    st.divider()
+    session = get_or_create_session(st.session_state, "date_selection")
+    session.set_context("事件类型", event_type)
+    session.set_context("喜用神", ", ".join(w.value for w in wuxing.favorable))
+    if result.recommended_dates:
+        top_date = result.recommended_dates[0]
+        session.set_context("首选吉日", f"{top_date.date} ({top_date.ganzhi})")
+    render_chat_section(session, api_key, "date_selection", "🤖 择日问答")
 

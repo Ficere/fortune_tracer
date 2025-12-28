@@ -4,9 +4,11 @@ from datetime import datetime
 from src.core import (
     calculate_bazi, analyze_wuxing, calculate_dayun,
     analyze_shishen, convert_to_true_solar_time,
-    calculate_shensha, calculate_nayin, calculate_auxiliary_from_bazi
+    calculate_shensha, calculate_nayin, calculate_auxiliary_from_bazi,
+    analyze_bonefate
 )
 from src.ai.interpreter import interpret_bazi, calculate_year_fortunes
+from src.ai import get_or_create_session
 from src.viz import (
     create_wuxing_radar, create_fortune_kline,
     create_year_fortune_line, create_palace_chart
@@ -15,8 +17,10 @@ from src.models import FortuneReport
 from src.models.bazi_models import Gender
 from .common import render_pillar_display
 from .bazi_components import (
-    render_auxiliary_info, render_nayin_info, render_shensha_info
+    render_auxiliary_info, render_nayin_info, render_shensha_info,
+    render_bonefate_card
 )
+from .chat_component import render_chat_section
 
 
 def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
@@ -36,20 +40,35 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
         shensha = calculate_shensha(bazi)
         nayin_list = calculate_nayin(bazi)
         auxiliary = calculate_auxiliary_from_bazi(bazi)
-        fortunes = calculate_year_fortunes(bazi, wuxing, years=10)
+        fortunes = calculate_year_fortunes(bazi, wuxing, years=91)  # 0-90岁
+        bonefate = analyze_bonefate(true_solar_dt)
     
     # 八字展示
     st.subheader("📜 您的生辰八字")
+
+    # 真太阳时信息显示
     if place and true_solar_dt != birth_dt:
-        st.caption(f"📍 已转换为{place}真太阳时")
+        time_diff = (true_solar_dt - birth_dt).total_seconds() / 60
+        sign = "+" if time_diff > 0 else ""
+        st.info(f"""
+        📍 **真太阳时校正**
+        出生地点：{place}
+        标准时间：{birth_dt.strftime('%Y-%m-%d %H:%M')}
+        真太阳时：{true_solar_dt.strftime('%Y-%m-%d %H:%M')} ({sign}{time_diff:.0f}分钟)
+        """)
+
     pillars = [bazi.year_pillar, bazi.month_pillar, bazi.day_pillar, bazi.hour_pillar]
     render_pillar_display(pillars, ["年柱", "月柱", "日柱", "时柱"])
     st.caption(f"格局: **{shishen.pattern}** | {shishen.analysis}")
     
+    # 称骨算命
+    st.subheader("⚖️ 称骨算命")
+    render_bonefate_card(bonefate)
+
     # 辅助宫位
     st.subheader("🏯 辅助宫位")
     render_auxiliary_info(auxiliary)
-    
+
     # 纳音五行
     st.subheader("🎵 纳音五行")
     render_nayin_info(nayin_list)
@@ -73,11 +92,11 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
     st.subheader("📈 运势分析")
     tab1, tab2, tab3 = st.tabs(["宫位图", "人生K线", "流年趋势"])
     with tab1:
-        st.plotly_chart(create_palace_chart(bazi, wuxing), use_container_width=True)
+        st.plotly_chart(create_palace_chart(bazi, wuxing), width="stretch")
     with tab2:
-        st.plotly_chart(create_fortune_kline(fortunes), use_container_width=True)
+        st.plotly_chart(create_fortune_kline(fortunes), width="stretch")
     with tab3:
-        st.plotly_chart(create_year_fortune_line(fortunes), use_container_width=True)
+        st.plotly_chart(create_year_fortune_line(fortunes), width="stretch")
     
     # AI解读
     _render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes)
@@ -87,7 +106,7 @@ def _render_wuxing_section(wuxing):
     """渲染五行分析部分"""
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.plotly_chart(create_wuxing_radar(wuxing), use_container_width=True)
+        st.plotly_chart(create_wuxing_radar(wuxing), width="stretch")
     with col2:
         st.markdown(f"**日主**: {wuxing.day_master.value} ({wuxing.day_master_strength})")
         st.markdown(f"**喜用神**: {', '.join(w.value for w in wuxing.favorable)}")
@@ -137,12 +156,20 @@ def _render_dayun(dayun_info):
 
 def _render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes):
     """渲染AI解读和报告下载"""
+    import os
     from src.ai.interpreter import interpret_bazi
-    
+
     st.subheader("🤖 AI命理解读")
-    with st.spinner("AI正在分析您的命盘..."):
+
+    # API Key缺失提示
+    has_api_key = api_key or os.getenv("OPENAI_API_KEY")
+    if not has_api_key:
+        st.warning("⚠️ 未检测到OpenAI API Key，当前使用**离线规则库**进行解读。"
+                   "如需AI智能解读，请在左侧设置中填写API Key。")
+
+    with st.spinner("正在分析您的命盘..."):
         interpretation = interpret_bazi(bazi, wuxing, api_key)
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### 💫 性格特点")
@@ -158,7 +185,7 @@ def _render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes):
         st.info(interpretation.health)
         st.markdown("#### 📋 综合评价")
         st.success(interpretation.summary)
-    
+
     report = FortuneReport(
         bazi=bazi, wuxing=wuxing,
         interpretation=interpretation, year_fortunes=fortunes
@@ -168,4 +195,15 @@ def _render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes):
         file_name=f"fortune_report_{birth_info['date']}.json",
         mime="application/json"
     )
+
+    # LLM对话区域
+    st.divider()
+    session = get_or_create_session(st.session_state, "bazi")
+    bazi_display = (f"{bazi.year_pillar.display} {bazi.month_pillar.display} "
+                    f"{bazi.day_pillar.display} {bazi.hour_pillar.display}")
+    session.set_context("八字", bazi_display)
+    session.set_context("日主", f"{wuxing.day_master.value}({wuxing.day_master_strength})")
+    session.set_context("喜用神", ", ".join(w.value for w in wuxing.favorable))
+    session.set_context("性格特点", interpretation.personality[:50])
+    render_chat_section(session, api_key, "bazi", "🤖 八字问答")
 

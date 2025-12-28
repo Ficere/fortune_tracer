@@ -42,25 +42,25 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
     st.subheader("🌟 五行分析")
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.plotly_chart(create_wuxing_radar(wuxing), use_container_width=True)
+        st.plotly_chart(create_wuxing_radar(wuxing), width="stretch")
     with col2:
         st.markdown(f"**日主**: {wuxing.day_master.value} ({wuxing.day_master_strength})")
         st.markdown(f"**喜用神**: {', '.join(w.value for w in wuxing.favorable)}")
         st.markdown(f"**忌神**: {', '.join(w.value for w in wuxing.unfavorable)}")
         for wx, count in wuxing.counts.to_dict().items():
             st.progress(min(count / 5, 1.0), text=f"{wx}: {count}")
-    
+
     # 宫位图
     st.subheader("🏛️ 八字宫位")
-    st.plotly_chart(create_palace_chart(bazi, wuxing), use_container_width=True)
-    
+    st.plotly_chart(create_palace_chart(bazi, wuxing), width="stretch")
+
     # 运势图表
     st.subheader("📈 运势预测")
     tab1, tab2 = st.tabs(["人生K线图", "流年趋势"])
     with tab1:
-        st.plotly_chart(create_fortune_kline(fortunes), use_container_width=True)
+        st.plotly_chart(create_fortune_kline(fortunes), width="stretch")
     with tab2:
-        st.plotly_chart(create_year_fortune_line(fortunes), use_container_width=True)
+        st.plotly_chart(create_year_fortune_line(fortunes), width="stretch")
     
     # AI解读
     if interpretation:

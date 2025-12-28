@@ -137,7 +137,7 @@ def render_shishen_detail(shishen):
                 text-align:center;border:1px solid #e2e8f0'>
                 <div style='font-size:12px;color:#64748b'>{info.pillar_name}</div>
                 <div style='font-size:16px;font-weight:bold;color:#334155'>
-                    {info.tiangan} 
+                    {info.tiangan}
                     <span style='color:#6366f1'>({info.tiangan_shishen})</span>
                 </div>
                 <div style='font-size:16px;font-weight:bold;color:#334155'>
@@ -148,3 +148,46 @@ def render_shishen_detail(shishen):
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+
+def render_bonefate_card(bonefate_result: dict):
+    """渲染称骨算命卡片（简化版，用于八字页面）"""
+    weight = bonefate_result["weight"]
+    level = bonefate_result["level"]
+    title = bonefate_result["title"]
+    poem = bonefate_result["poem"]
+    level_desc = bonefate_result["level_desc"]
+
+    # 等级颜色映射
+    level_colors = {
+        "下下": "#dc2626", "下": "#ea580c", "中下": "#d97706",
+        "中": "#65a30d", "中上": "#16a34a", "上": "#0891b2",
+        "上上": "#7c3aed", "极上": "#c026d3", "至尊": "#e11d48",
+    }
+    color = level_colors.get(level, "#65a30d")
+
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown(f"""
+        <div style='background:linear-gradient(135deg,{color}22,{color}11);
+            padding:20px;border-radius:12px;text-align:center;
+            border:2px solid {color}44'>
+            <div style='font-size:32px;font-weight:bold;color:{color}'>
+                {weight:.1f}两
+            </div>
+            <div style='font-size:16px;color:{color};margin-top:8px'>
+                {level}
+            </div>
+            <div style='font-size:12px;color:#64748b;margin-top:4px'>
+                {level_desc}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"**「{title}」**")
+        # 显示诗词前两句
+        first_lines = poem.split('\n')[0][:60]
+        st.caption(f"{first_lines}...")
+        with st.expander("📖 查看完整诗词"):
+            st.write(poem)

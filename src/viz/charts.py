@@ -39,103 +39,78 @@ def create_wuxing_radar(wuxing: WuxingAnalysis) -> go.Figure:
 
 
 def create_fortune_kline(fortunes: list[YearFortune]) -> go.Figure:
-    """创建人生K线图"""
+    """创建人生K线图（0-90岁）"""
     years = [f.year for f in fortunes]
     scores = [f.score for f in fortunes]
-    
-    # 生成K线数据（开盘、最高、最低、收盘）
-    opens = []
-    highs = []
-    lows = []
-    closes = []
-    colors = []
-    
+    descriptions = [f.description for f in fortunes]
+
+    # 生成K线数据
+    opens, highs, lows, closes = [], [], [], []
     prev_score = scores[0] if scores else 50
+
     for score in scores:
-        open_val = prev_score
-        close_val = score
-        high_val = max(open_val, close_val) + (hash(str(score)) % 10)
-        low_val = min(open_val, close_val) - (hash(str(score * 2)) % 8)
-        
-        opens.append(open_val)
-        closes.append(close_val)
-        highs.append(min(high_val, 100))
-        lows.append(max(low_val, 20))
-        colors.append('#22c55e' if close_val >= open_val else '#ef4444')
+        opens.append(prev_score)
+        closes.append(score)
+        highs.append(min(max(prev_score, score) + (hash(str(score)) % 10), 100))
+        lows.append(max(min(prev_score, score) - (hash(str(score * 2)) % 8), 20))
         prev_score = score
-    
+
     fig = go.Figure()
-    
+
     fig.add_trace(go.Candlestick(
-        x=years,
-        open=opens,
-        high=highs,
-        low=lows,
-        close=closes,
-        increasing_line_color='#22c55e',
-        decreasing_line_color='#ef4444',
-        name='运势K线'
+        x=years, open=opens, high=highs, low=lows, close=closes,
+        increasing_line_color='#22c55e', decreasing_line_color='#ef4444',
+        name='运势K线', text=descriptions,
+        hovertemplate='%{text}<br>运势: %{close:.0f}<extra></extra>'
     ))
-    
-    # 添加均线
+
+    # 添加10年均线
     import pandas as pd
-    df = pd.DataFrame({'score': scores})
-    ma3 = df['score'].rolling(window=3, min_periods=1).mean()
-    
+    ma10 = pd.Series(scores).rolling(window=10, min_periods=1).mean()
     fig.add_trace(go.Scatter(
-        x=years, y=ma3, mode='lines',
-        name='3年均线', line=dict(color='#f59e0b', width=2)
+        x=years, y=ma10, mode='lines',
+        name='10年均线', line=dict(color='#f59e0b', width=2)
     ))
-    
+
     fig.update_layout(
-        title=dict(text="人生运势K线图", x=0.5),
-        xaxis_title="年份",
-        yaxis_title="运势指数",
+        title=dict(text="人生运势K线图（0-90岁）", x=0.5),
+        xaxis_title="年份（年龄）", yaxis_title="运势指数",
         yaxis=dict(range=[20, 100]),
-        xaxis_rangeslider_visible=False,
-        height=450,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        xaxis=dict(rangeslider=dict(visible=True, thickness=0.05)),
+        height=500, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
     )
-    
+
     return fig
 
 
 def create_year_fortune_line(fortunes: list[YearFortune]) -> go.Figure:
-    """创建流年运势趋势图"""
+    """创建流年运势趋势图（0-90岁）"""
     years = [f.year for f in fortunes]
     scores = [f.score for f in fortunes]
     descriptions = [f.description for f in fortunes]
-    
+
     fig = go.Figure()
-    
-    # 添加面积图
+
+    # 添加面积图（优化显示：减少marker大小）
     fig.add_trace(go.Scatter(
-        x=years, y=scores,
-        mode='lines+markers',
-        name='流年运势',
-        line=dict(color='#8b5cf6', width=3),
-        marker=dict(size=10, color='#8b5cf6'),
-        fill='tozeroy',
-        fillcolor='rgba(139, 92, 246, 0.2)',
-        text=descriptions,
-        hovertemplate='%{text}<br>运势: %{y:.0f}<extra></extra>'
+        x=years, y=scores, mode='lines',
+        name='流年运势', line=dict(color='#8b5cf6', width=2),
+        fill='tozeroy', fillcolor='rgba(139, 92, 246, 0.2)',
+        text=descriptions, hovertemplate='%{text}<br>运势: %{y:.0f}<extra></extra>'
     ))
-    
+
     # 添加平均线
     avg = sum(scores) / len(scores) if scores else 50
     fig.add_hline(y=avg, line_dash="dash", line_color="#94a3b8",
                   annotation_text=f"平均: {avg:.0f}")
-    
+
     fig.update_layout(
-        title=dict(text="流年运势趋势", x=0.5),
-        xaxis_title="年份",
-        yaxis_title="运势指数",
+        title=dict(text="流年运势趋势（0-90岁）", x=0.5),
+        xaxis_title="年份（年龄）", yaxis_title="运势指数",
         yaxis=dict(range=[30, 100]),
-        height=350,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        xaxis=dict(rangeslider=dict(visible=True, thickness=0.05)),
+        height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
     )
-    
+
     return fig
 
