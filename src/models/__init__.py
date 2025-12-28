@@ -34,6 +34,12 @@ from .date_selection_models import (
     DayInfo,
     DateRecommendation,
 )
+from .bonefate_models import (
+    LunarDate,
+    SolarDate,
+    BoneFateResult,
+    BoneFateRequest,
+)
 
 __all__ = [
     # bazi_models
@@ -68,5 +74,10 @@ __all__ = [
     "DayQuality",
     "DayInfo",
     "DateRecommendation",
+    # bonefate_models
+    "LunarDate",
+    "SolarDate",
+    "BoneFateResult",
+    "BoneFateRequest",
 ]
 
