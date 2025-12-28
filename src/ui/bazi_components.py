@@ -81,7 +81,7 @@ def render_shensha_info(shensha):
                 <div style='display:inline-block;margin:2px;padding:4px 10px;
                     background:#dcfce7;border-radius:15px;font-size:12px;
                     color:#16a34a'>
-                    {ss.name}
+                    {ss}
                 </div>
                 """, unsafe_allow_html=True)
         else:
@@ -95,7 +95,7 @@ def render_shensha_info(shensha):
                 <div style='display:inline-block;margin:2px;padding:4px 10px;
                     background:#fef2f2;border-radius:15px;font-size:12px;
                     color:#dc2626'>
-                    {ss.name}
+                    {ss}
                 </div>
                 """, unsafe_allow_html=True)
         else:
