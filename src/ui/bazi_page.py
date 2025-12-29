@@ -1,11 +1,11 @@
 """八字分析页面"""
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, date
 from src.core import (
     calculate_bazi, analyze_wuxing, calculate_dayun,
     analyze_shishen, convert_to_true_solar_time,
     calculate_shensha, calculate_nayin, calculate_auxiliary_from_bazi,
-    analyze_bonefate, calculate_three_days_fortune
+    analyze_bonefate, generate_daily_fortune_report
 )
 from src.ai.interpreter import calculate_year_fortunes
 from src.viz import (
@@ -22,7 +22,7 @@ from .fortune_components import (
     render_dayun_detail_panel, render_fortune_year_selector,
     render_fortune_decade_summary
 )
-from .daily_fortune_component import render_daily_fortune_panel
+from .daily_fortune_full import render_full_daily_fortune
 from .ai_interpretation import render_ai_interpretation
 
 
@@ -45,10 +45,10 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
         auxiliary = calculate_auxiliary_from_bazi(bazi)
         fortunes = calculate_year_fortunes(bazi, wuxing, years=91)  # 0-90岁
         bonefate = analyze_bonefate(true_solar_dt)
-        daily_fortunes = calculate_three_days_fortune(bazi, wuxing)  # 每日运势
+        daily_report = generate_daily_fortune_report(date.today(), bazi, wuxing)  # 完整每日运势
 
     # 每日运势（顶部展示）
-    render_daily_fortune_panel(daily_fortunes)
+    render_full_daily_fortune(daily_report)
     
     # 八字展示
     st.subheader("📜 您的生辰八字")

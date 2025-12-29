@@ -36,6 +36,8 @@ from .bonefate import (
 )
 from .fortune_interpreter import generate_year_detail, generate_dayun_detail
 from .daily_fortune import calculate_daily_fortune, calculate_three_days_fortune
+from .daily_fortune_report import generate_daily_fortune_report
+from .hour_fortune import calculate_hour_fortunes, get_lucky_hours
 
 __all__ = [
     # 核心计算
@@ -90,5 +92,8 @@ __all__ = [
     # 每日运势
     "calculate_daily_fortune",
     "calculate_three_days_fortune",
+    "generate_daily_fortune_report",
+    "calculate_hour_fortunes",
+    "get_lucky_hours",
 ]
 
