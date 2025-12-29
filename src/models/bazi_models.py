@@ -92,11 +92,51 @@ class WuxingAnalysis(BaseModel):
     unfavorable: list[Wuxing] = Field(default_factory=list, description="忌神")
 
 
+class YearFortuneDetail(BaseModel):
+    """流年详细解读"""
+    level: str = Field("平", description="运势等级")
+    emoji: str = Field("😐", description="等级图标")
+    wuxing_effect: str = Field("", description="五行影响")
+    ganzhi_relations: list[str] = Field(default_factory=list, description="干支关系")
+    career: str = Field("", description="事业建议")
+    love: str = Field("", description="感情建议")
+    health: str = Field("", description="健康建议")
+    wealth: str = Field("", description="财运建议")
+    suitable: list[str] = Field(default_factory=list, description="适宜活动")
+    unsuitable: list[str] = Field(default_factory=list, description="不宜活动")
+    # 计算依据字段（用于AI解读和调试）
+    score_factors: list[str] = Field(default_factory=list, description="评分因素说明")
+    is_favorable_year: bool = Field(False, description="是否喜神年")
+    wuxing_relation: str = Field("", description="五行生克关系")
+
+
 class YearFortune(BaseModel):
     """流年运势"""
     year: int
     score: float = Field(..., ge=0, le=100)
     description: str
+    age: int = Field(0, description="年龄")
+    ganzhi: str = Field("", description="干支")
+    wuxing: str = Field("", description="五行")
+    detail: YearFortuneDetail | None = Field(None, description="详细解读")
+
+
+class DaYunDetail(BaseModel):
+    """大运详细解读"""
+    score: float = Field(60, description="运势评分")
+    level: str = Field("平", description="运势等级")
+    emoji: str = Field("😐", description="等级图标")
+    level_desc: str = Field("", description="等级描述")
+    stage: str = Field("", description="人生阶段")
+    gan_relation: str = Field("", description="天干关系分析")
+    zhi_relation: str = Field("", description="地支关系分析")
+    gan_effect: str = Field("", description="天干喜忌影响")
+    zhi_effect: str = Field("", description="地支喜忌影响")
+    career: list[str] = Field(default_factory=list, description="事业建议")
+    love: list[str] = Field(default_factory=list, description="感情建议")
+    health: str = Field("", description="健康建议")
+    wealth: list[str] = Field(default_factory=list, description="财运建议")
+    summary: str = Field("", description="综合评价")
 
 
 class DaYun(BaseModel):
@@ -109,6 +149,7 @@ class DaYun(BaseModel):
     end_age: int = Field(..., description="结束年龄")
     start_year: int = Field(..., description="起始年份")
     end_year: int = Field(..., description="结束年份")
+    detail: DaYunDetail | None = Field(None, description="详细解读")
 
 
 class DaYunInfo(BaseModel):

@@ -35,9 +35,18 @@ def _render_bazi_form(api_key: str | None):
 
     analyze_btn = st.button("🔮 开始解读", type="primary", use_container_width=True)
 
+    # 点击按钮时保存输入并触发分析
     if analyze_btn:
+        st.session_state["bazi_birth_info"] = {
+            "date": birth_date, "time": birth_time,
+            "gender": gender, "place": birth_place
+        }
+        st.session_state["bazi_analyzed"] = True
+
+    # 有分析结果时持续显示（解决滑块变化导致消失问题）
+    if st.session_state.get("bazi_analyzed"):
         from src.ui import render_bazi_analysis
-        birth_info = {"date": birth_date, "time": birth_time, "gender": gender, "place": birth_place}
+        birth_info = st.session_state["bazi_birth_info"]
         st.divider()
         render_bazi_analysis(birth_info, api_key)
 

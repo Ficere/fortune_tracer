@@ -404,10 +404,10 @@ class TestDayunModule:
         from datetime import datetime
         from src.core import calculate_bazi, calculate_dayun, get_current_dayun
         from src.models.bazi_models import Gender
-        
+
         bazi = calculate_bazi(datetime(1990, 1, 15, 8, 0), Gender.MALE)
-        dayun_info = calculate_dayun(bazi, num_dayun=3)
-        
+        dayun_info = calculate_dayun(bazi, num_dayun=3, with_detail=False)
+
         # 测试超出范围
         current = get_current_dayun(dayun_info, 100)
         assert current is None

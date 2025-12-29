@@ -39,33 +39,30 @@ def create_wuxing_radar(wuxing: WuxingAnalysis) -> go.Figure:
 
 
 def create_fortune_kline(fortunes: list[YearFortune]) -> go.Figure:
-    """创建人生K线图（0-90岁）"""
-    years = [f.year for f in fortunes]
-    scores = [f.score for f in fortunes]
-    descriptions = [f.description for f in fortunes]
+    """创建人生K线图（0-90岁），K线形态与运势评级匹配"""
+    from .kline_generator import generate_kline_data
 
-    # 生成K线数据
-    opens, highs, lows, closes = [], [], [], []
-    prev_score = scores[0] if scores else 50
+    # 使用专门的K线生成器确保评级与形态匹配
+    klines = generate_kline_data(fortunes)
 
-    for score in scores:
-        opens.append(prev_score)
-        closes.append(score)
-        highs.append(min(max(prev_score, score) + (hash(str(score)) % 10), 100))
-        lows.append(max(min(prev_score, score) - (hash(str(score * 2)) % 8), 20))
-        prev_score = score
+    years = [k.year for k in klines]
+    opens = [k.open for k in klines]
+    highs = [k.high for k in klines]
+    lows = [k.low for k in klines]
+    closes = [k.close for k in klines]
+    hover_texts = [k.hover_text for k in klines]
 
     fig = go.Figure()
-
     fig.add_trace(go.Candlestick(
         x=years, open=opens, high=highs, low=lows, close=closes,
         increasing_line_color='#22c55e', decreasing_line_color='#ef4444',
-        name='运势K线', text=descriptions,
+        name='运势K线', text=hover_texts,
         hovertemplate='%{text}<br>运势: %{close:.0f}<extra></extra>'
     ))
 
     # 添加10年均线
     import pandas as pd
+    scores = [k.score for k in klines]
     ma10 = pd.Series(scores).rolling(window=10, min_periods=1).mean()
     fig.add_trace(go.Scatter(
         x=years, y=ma10, mode='lines',
@@ -79,24 +76,30 @@ def create_fortune_kline(fortunes: list[YearFortune]) -> go.Figure:
         xaxis=dict(rangeslider=dict(visible=True, thickness=0.05)),
         height=500, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
     )
-
     return fig
 
 
 def create_year_fortune_line(fortunes: list[YearFortune]) -> go.Figure:
-    """创建流年运势趋势图（0-90岁）"""
+    """创建流年运势趋势图（0-90岁），增强hover详细信息"""
     years = [f.year for f in fortunes]
     scores = [f.score for f in fortunes]
-    descriptions = [f.description for f in fortunes]
+
+    # 构建详细hover文本
+    hover_texts = []
+    for f in fortunes:
+        text = f"{f.description}"
+        if f.detail:
+            text += f"<br>{f.detail.emoji} {f.detail.level}"
+            text += f"<br>事业: {f.detail.career}"
+            text += f"<br>感情: {f.detail.love}"
+        hover_texts.append(text)
 
     fig = go.Figure()
-
-    # 添加面积图（优化显示：减少marker大小）
     fig.add_trace(go.Scatter(
         x=years, y=scores, mode='lines',
         name='流年运势', line=dict(color='#8b5cf6', width=2),
         fill='tozeroy', fillcolor='rgba(139, 92, 246, 0.2)',
-        text=descriptions, hovertemplate='%{text}<br>运势: %{y:.0f}<extra></extra>'
+        text=hover_texts, hovertemplate='%{text}<br>运势: %{y:.0f}<extra></extra>'
     ))
 
     # 添加平均线
@@ -111,6 +114,5 @@ def create_year_fortune_line(fortunes: list[YearFortune]) -> go.Figure:
         xaxis=dict(rangeslider=dict(visible=True, thickness=0.05)),
         height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
     )
-
     return fig
 

@@ -84,59 +84,93 @@ def _get_dayun_pillar(
     return TIANGAN[new_gan_idx], DIZHI[new_zhi_idx]
 
 
-def calculate_dayun(bazi: BaziChart, num_dayun: int = 8) -> DaYunInfo:
+def calculate_dayun(
+    bazi: BaziChart,
+    wuxing: "WuxingAnalysis | None" = None,
+    num_dayun: int = 8,
+    with_detail: bool = True
+) -> DaYunInfo:
     """
     计算大运
-    
+
     Args:
         bazi: 八字信息
+        wuxing: 五行分析（用于生成详细解读）
         num_dayun: 大运数量（默认8个，共80年）
-    
+        with_detail: 是否生成详细解读
+
     Returns:
         DaYunInfo: 大运信息
     """
+    from src.models.bazi_models import DaYunDetail
+
     year_gan = bazi.year_pillar.tiangan.value
     month_gan = bazi.month_pillar.tiangan.value
     month_zhi = bazi.month_pillar.dizhi.value
-    
+
     # 计算大运方向和起运年龄
     direction = _get_dayun_direction(year_gan, bazi.gender)
     start_age, extra_months = _calculate_start_age(
         bazi.birth_datetime, year_gan, bazi.gender
     )
-    
+
     # 生成大运列表
     dayun_list = []
     birth_year = bazi.birth_datetime.year
-    
+
     for i in range(1, num_dayun + 1):
         gan, zhi = _get_dayun_pillar(month_gan, month_zhi, i, direction)
         ganzhi = f"{gan}{zhi}"
-        
+
         # 计算大运起止年龄和年份
         age_start = start_age + (i - 1) * 10
         age_end = age_start + 9
         year_start = birth_year + age_start
         year_end = birth_year + age_end
-        
+
         # 大运五行
-        wuxing = TIANGAN_WUXING[gan]
-        
+        dayun_wuxing = TIANGAN_WUXING[gan]
+
+        # 生成详细解读
+        detail = None
+        if with_detail and wuxing:
+            from .fortune_interpreter import generate_dayun_detail
+            detail_data = generate_dayun_detail(
+                ganzhi, dayun_wuxing, age_start, age_end, bazi, wuxing
+            )
+            detail = DaYunDetail(
+                score=detail_data["score"],
+                level=detail_data["level"],
+                emoji=detail_data["emoji"],
+                level_desc=detail_data["level_desc"],
+                stage=detail_data["stage"],
+                gan_relation=detail_data["gan_relation"],
+                zhi_relation=detail_data["zhi_relation"],
+                gan_effect=detail_data["gan_effect"],
+                zhi_effect=detail_data["zhi_effect"],
+                career=detail_data["career"],
+                love=detail_data["love"],
+                health=detail_data["health"],
+                wealth=detail_data["wealth"],
+                summary=detail_data["summary"],
+            )
+
         dayun = DaYun(
             ganzhi=ganzhi,
             tiangan=gan,
             dizhi=zhi,
-            wuxing=wuxing,
+            wuxing=dayun_wuxing,
             start_age=age_start,
             end_age=age_end,
             start_year=year_start,
-            end_year=year_end
+            end_year=year_end,
+            detail=detail
         )
         dayun_list.append(dayun)
-    
+
     # 大运方向描述
     direction_desc = "顺行" if direction > 0 else "逆行"
-    
+
     return DaYunInfo(
         direction=direction_desc,
         start_age=start_age,

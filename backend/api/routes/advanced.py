@@ -21,21 +21,23 @@ router = APIRouter(prefix="/advanced", tags=["高级分析"])
 async def get_dayun(request: DayunRequest) -> DaYunInfo:
     """
     计算大运
-    
+
     根据出生信息计算大运排盘，包括起运年龄和运势周期
     """
+    from src.core import analyze_wuxing
     try:
         birth_info = request.birth_info
         gender = Gender.MALE if birth_info.gender == "男" else Gender.FEMALE
-        
+
         # 真太阳时转换
         birth_dt = birth_info.birth_datetime
         if birth_info.birth_place:
             birth_dt = convert_to_true_solar_time(birth_dt, birth_info.birth_place)
-        
+
         bazi = calculate_bazi(birth_dt, gender, birth_info.birth_place)
-        dayun_info = calculate_dayun(bazi, request.num_dayun)
-        
+        wuxing = analyze_wuxing(bazi)
+        dayun_info = calculate_dayun(bazi, wuxing, request.num_dayun)
+
         return dayun_info
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

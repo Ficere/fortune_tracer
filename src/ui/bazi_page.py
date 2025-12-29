@@ -5,22 +5,25 @@ from src.core import (
     calculate_bazi, analyze_wuxing, calculate_dayun,
     analyze_shishen, convert_to_true_solar_time,
     calculate_shensha, calculate_nayin, calculate_auxiliary_from_bazi,
-    analyze_bonefate
+    analyze_bonefate, calculate_three_days_fortune
 )
-from src.ai.interpreter import interpret_bazi, calculate_year_fortunes
-from src.ai import get_or_create_session
+from src.ai.interpreter import calculate_year_fortunes
 from src.viz import (
     create_wuxing_radar, create_fortune_kline,
     create_year_fortune_line, create_palace_chart
 )
-from src.models import FortuneReport
 from src.models.bazi_models import Gender
 from .common import render_pillar_display
 from .bazi_components import (
     render_auxiliary_info, render_nayin_info, render_shensha_info,
     render_bonefate_card
 )
-from .chat_component import render_chat_section
+from .fortune_components import (
+    render_dayun_detail_panel, render_fortune_year_selector,
+    render_fortune_decade_summary
+)
+from .daily_fortune_component import render_daily_fortune_panel
+from .ai_interpretation import render_ai_interpretation
 
 
 def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
@@ -28,20 +31,24 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
     birth_dt = datetime.combine(birth_info["date"], birth_info["time"])
     gender_enum = Gender.MALE if birth_info["gender"] == "男" else Gender.FEMALE
     place = birth_info["place"] or None
-    
+
     # 真太阳时转换
     true_solar_dt = convert_to_true_solar_time(birth_dt, place) if place else birth_dt
-    
+
     with st.spinner("正在计算八字..."):
         bazi = calculate_bazi(true_solar_dt, gender_enum, place)
         wuxing = analyze_wuxing(bazi)
         shishen = analyze_shishen(bazi)
-        dayun_info = calculate_dayun(bazi)
+        dayun_info = calculate_dayun(bazi, wuxing)  # 传入wuxing以生成详细解读
         shensha = calculate_shensha(bazi)
         nayin_list = calculate_nayin(bazi)
         auxiliary = calculate_auxiliary_from_bazi(bazi)
         fortunes = calculate_year_fortunes(bazi, wuxing, years=91)  # 0-90岁
         bonefate = analyze_bonefate(true_solar_dt)
+        daily_fortunes = calculate_three_days_fortune(bazi, wuxing)  # 每日运势
+
+    # 每日运势（顶部展示）
+    render_daily_fortune_panel(daily_fortunes)
     
     # 八字展示
     st.subheader("📜 您的生辰八字")
@@ -86,20 +93,25 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
     with tab_ss:
         _render_shishen_table(shishen)
     with tab_dy:
-        _render_dayun(dayun_info)
-    
+        _render_dayun_overview(dayun_info)
+        st.divider()
+        render_dayun_detail_panel(dayun_info, fortunes)  # 传入流年数据以显示年度细分
+
     # 宫位图 & 运势图
     st.subheader("📈 运势分析")
-    tab1, tab2, tab3 = st.tabs(["宫位图", "人生K线", "流年趋势"])
+    tab1, tab2, tab3, tab4 = st.tabs(["宫位图", "人生K线", "流年趋势", "详细解读"])
     with tab1:
         st.plotly_chart(create_palace_chart(bazi, wuxing), width="stretch")
     with tab2:
         st.plotly_chart(create_fortune_kline(fortunes), width="stretch")
+        render_fortune_decade_summary(fortunes)
     with tab3:
         st.plotly_chart(create_year_fortune_line(fortunes), width="stretch")
+    with tab4:
+        render_fortune_year_selector(fortunes)
     
     # AI解读
-    _render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes)
+    render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes)
 
 
 def _render_wuxing_section(wuxing):
@@ -135,75 +147,21 @@ def _render_shishen_table(shishen):
             """, unsafe_allow_html=True)
 
 
-def _render_dayun(dayun_info):
-    """渲染大运"""
-    st.caption(
-        f"起运: **{dayun_info.start_age}岁{dayun_info.extra_months}个月** | "
-        f"方向: **{dayun_info.direction}**"
-    )
+def _render_dayun_overview(dayun_info):
+    """渲染大运概览卡片"""
     cols = st.columns(len(dayun_info.dayun_list))
     for col, dy in zip(cols, dayun_info.dayun_list):
+        detail = dy.detail
+        emoji = detail.emoji if detail else "📅"
         with col:
             st.markdown(f"""
             <div style='background:linear-gradient(135deg,#6366f1,#8b5cf6);
                 padding:8px;border-radius:8px;text-align:center;color:white'>
+                <div style='font-size:10px'>{emoji}</div>
                 <div style='font-size:16px;font-weight:bold'>{dy.ganzhi}</div>
                 <div style='font-size:12px'>{dy.start_age}-{dy.end_age}岁</div>
-                <div style='font-size:11px;opacity:0.8'>{dy.start_year}-{dy.end_year}</div>
+                <div style='font-size:10px;opacity:0.8'>{dy.wuxing}</div>
             </div>
             """, unsafe_allow_html=True)
 
-
-def _render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes):
-    """渲染AI解读和报告下载"""
-    import os
-    from src.ai.interpreter import interpret_bazi
-
-    st.subheader("🤖 AI命理解读")
-
-    # API Key缺失提示
-    has_api_key = api_key or os.getenv("OPENAI_API_KEY")
-    if not has_api_key:
-        st.warning("⚠️ 未检测到OpenAI API Key，当前使用**离线规则库**进行解读。"
-                   "如需AI智能解读，请在左侧设置中填写API Key。")
-
-    with st.spinner("正在分析您的命盘..."):
-        interpretation = interpret_bazi(bazi, wuxing, api_key)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("#### 💫 性格特点")
-        st.info(interpretation.personality)
-        st.markdown("#### 💼 事业运势")
-        st.info(interpretation.career)
-        st.markdown("#### 💰 财运分析")
-        st.info(interpretation.wealth)
-    with col2:
-        st.markdown("#### 💕 感情运势")
-        st.info(interpretation.love)
-        st.markdown("#### 🏥 健康建议")
-        st.info(interpretation.health)
-        st.markdown("#### 📋 综合评价")
-        st.success(interpretation.summary)
-
-    report = FortuneReport(
-        bazi=bazi, wuxing=wuxing,
-        interpretation=interpretation, year_fortunes=fortunes
-    )
-    st.download_button(
-        "📥 下载完整报告 (JSON)", report.to_json(),
-        file_name=f"fortune_report_{birth_info['date']}.json",
-        mime="application/json"
-    )
-
-    # LLM对话区域
-    st.divider()
-    session = get_or_create_session(st.session_state, "bazi")
-    bazi_display = (f"{bazi.year_pillar.display} {bazi.month_pillar.display} "
-                    f"{bazi.day_pillar.display} {bazi.hour_pillar.display}")
-    session.set_context("八字", bazi_display)
-    session.set_context("日主", f"{wuxing.day_master.value}({wuxing.day_master_strength})")
-    session.set_context("喜用神", ", ".join(w.value for w in wuxing.favorable))
-    session.set_context("性格特点", interpretation.personality[:50])
-    render_chat_section(session, api_key, "bazi", "🤖 八字问答")
 

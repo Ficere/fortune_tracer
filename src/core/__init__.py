@@ -34,6 +34,8 @@ from .bonefate import (
     get_weight_level,
     analyze_bonefate,
 )
+from .fortune_interpreter import generate_year_detail, generate_dayun_detail
+from .daily_fortune import calculate_daily_fortune, calculate_three_days_fortune
 
 __all__ = [
     # 核心计算
@@ -82,5 +84,11 @@ __all__ = [
     "get_bone_poem",
     "get_weight_level",
     "analyze_bonefate",
+    # 运势解读
+    "generate_year_detail",
+    "generate_dayun_detail",
+    # 每日运势
+    "calculate_daily_fortune",
+    "calculate_three_days_fortune",
 ]
 

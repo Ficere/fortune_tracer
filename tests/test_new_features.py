@@ -29,7 +29,7 @@ class TestDayun:
     
     def test_calculate_dayun_list_length(self, sample_male_bazi):
         """大运列表长度应正确"""
-        result = calculate_dayun(sample_male_bazi, num_dayun=8)
+        result = calculate_dayun(sample_male_bazi, num_dayun=8, with_detail=False)
         assert len(result.dayun_list) == 8
     
     def test_calculate_dayun_ages(self, sample_male_bazi):
