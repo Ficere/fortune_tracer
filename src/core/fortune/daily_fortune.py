@@ -1,7 +1,7 @@
 """每日运势计算模块"""
 from datetime import datetime, date, timedelta
 from pydantic import BaseModel, Field
-from src.core.constants import (
+from src.core.bazi.constants import (
     TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_WUXING,
     DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING
 )

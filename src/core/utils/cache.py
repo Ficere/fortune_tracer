@@ -6,7 +6,7 @@ import hashlib
 import time
 from functools import wraps
 from typing import Any, Callable, Optional
-from .config import get_settings
+from src.core.utils.config import get_settings
 
 
 class SimpleCache:

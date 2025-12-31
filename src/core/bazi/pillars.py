@@ -2,8 +2,8 @@
 from datetime import datetime
 from src.models import BaziPillar, BaziChart, Gender
 from src.models.bazi_models import TianGan, DiZhi
-from .constants import TIANGAN, DIZHI
-from .calendar import get_jieqi_month
+from src.core.bazi.constants import TIANGAN, DIZHI
+from src.core.utils.calendar import get_jieqi_month
 
 
 def _get_year_pillar(year: int, month: int, day: int) -> BaziPillar:

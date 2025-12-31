@@ -1,7 +1,7 @@
 """七维度运势评分系统 - 使用通用计算器"""
 from src.models.daily_fortune_models import DimensionScore
-from src.core.daily_fortune_engine import DailyFortuneEngine
-from src.core.dimension_calculators import calc_dimension
+from src.core.fortune.daily_fortune_engine import DailyFortuneEngine
+from src.core.fortune.dimension_calculators import calc_dimension
 
 DIMENSION_KEYS = ["career", "wealth", "love", "health", "emotion", "family", "opportunity"]
 

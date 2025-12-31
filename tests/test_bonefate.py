@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime
-from src.core.bonefate import (
+from src.core.analysis.bonefate import (
     get_tiangan_index,
     get_dizhi_index,
     get_hour_dizhi_index,

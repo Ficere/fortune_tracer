@@ -2,7 +2,7 @@
 from datetime import datetime
 from src.models import BaziChart, Gender
 from src.models.bazi_models import DaYun, DaYunInfo
-from .constants import TIANGAN, DIZHI, TIANGAN_WUXING
+from src.core.bazi.constants import TIANGAN, DIZHI, TIANGAN_WUXING
 
 
 def _get_dayun_direction(year_gan: str, gender: Gender) -> int:
@@ -134,7 +134,7 @@ def calculate_dayun(
         # 生成详细解读
         detail = None
         if with_detail and wuxing:
-            from .fortune_interpreter import generate_dayun_detail
+            from src.core.fortune.fortune_interpreter import generate_dayun_detail
             detail_data = generate_dayun_detail(
                 ganzhi, dayun_wuxing, age_start, age_end, bazi, wuxing
             )

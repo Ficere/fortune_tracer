@@ -4,6 +4,7 @@ from .charts import (
     create_fortune_kline,
     create_year_fortune_line,
 )
+from .kline_multiplier import generate_multiplier_klines, MultiplierKLine
 from .palace import create_palace_chart
 from .compatibility_charts import (
     create_compatibility_gauge,
@@ -23,6 +24,10 @@ from .shishen_charts import (
     create_shishen_bar,
     create_shishen_sunburst,
 )
+from .ziwei_charts import (
+    create_ziwei_chart,
+    create_palace_summary_chart,
+)
 
 __all__ = [
     # 基础图表
@@ -30,6 +35,9 @@ __all__ = [
     "create_fortune_kline",
     "create_year_fortune_line",
     "create_palace_chart",
+    # K线生成器
+    "generate_multiplier_klines",
+    "MultiplierKLine",
     # 配对图表
     "create_compatibility_gauge",
     "create_wuxing_comparison",
@@ -44,5 +52,8 @@ __all__ = [
     "create_shishen_radar",
     "create_shishen_bar",
     "create_shishen_sunburst",
+    # 紫微图表
+    "create_ziwei_chart",
+    "create_palace_summary_chart",
 ]
 

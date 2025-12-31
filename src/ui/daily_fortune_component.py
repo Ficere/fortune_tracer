@@ -1,7 +1,7 @@
 """每日运势UI组件"""
 import streamlit as st
 from datetime import date
-from src.core.daily_fortune import DailyFortune
+from src.core.fortune.daily_fortune import DailyFortune
 
 
 def render_daily_fortune_panel(fortunes: list[DailyFortune]):

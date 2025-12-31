@@ -1,43 +1,42 @@
-"""核心计算模块"""
-from .pillars import calculate_bazi
-from .wuxing import analyze_wuxing
-from .calendar import solar_to_lunar
-from .compatibility import calculate_compatibility
-from .date_selection import select_dates
-from .dayun import calculate_dayun, get_current_dayun
-from .shishen import analyze_shishen
-from .shensha import calculate_shensha
-from .nayin import calculate_nayin, get_year_nayin
-from .liunian import calculate_liunian
-from .jieqi import get_jieqi_month, is_before_lichun, get_jieqi_for_year
-from .cache import cached, get_cache, clear_cache, cache_stats
-from .solar_time import convert_to_true_solar_time, get_time_correction_info
-from .config import get_settings, Settings
-from .logging import get_logger, setup_logging
-from .auxiliary import (
-    calculate_ming_gong,
-    calculate_tai_yuan,
-    calculate_shen_gong,
-    calculate_auxiliary,
-    calculate_auxiliary_from_bazi,
+"""核心计算模块 - 模块化重构版本
+
+按功能域组织：
+- bazi/: 八字核心计算（四柱、五行、十神、神煞、纳音、辅助宫位）
+- fortune/: 运势分析（大运、流年、每日运势、吉时）
+- analysis/: 专项分析（配对、择日、称骨算命）
+- ziwei/: 紫微斗数（星盘计算、宫位分析）
+- utils/: 工具模块（配置、日志、缓存、历法、城市）
+"""
+# 八字核心计算
+from src.core.bazi import (
+    calculate_bazi, analyze_wuxing, analyze_shishen,
+    calculate_shensha, calculate_nayin, get_year_nayin,
+    calculate_ming_gong, calculate_tai_yuan, calculate_shen_gong,
+    calculate_auxiliary, calculate_auxiliary_from_bazi,
 )
-from .exceptions import (
-    FortuneTracerError,
-    ValidationError,
-    BirthInfoError,
-    CalculationError,
-    AIInterpretationError,
+# 运势分析
+from src.core.fortune import (
+    calculate_dayun, get_current_dayun, calculate_liunian,
+    get_jieqi_month, is_before_lichun, get_jieqi_for_year,
+    calculate_daily_fortune, calculate_three_days_fortune,
+    generate_daily_fortune_report, calculate_hour_fortunes, get_lucky_hours,
+    generate_year_detail, generate_dayun_detail,
 )
-from .bonefate import (
-    calculate_bone_weight,
-    get_bone_poem,
-    get_weight_level,
-    analyze_bonefate,
+# 专项分析
+from src.core.analysis import (
+    calculate_compatibility, select_dates,
+    calculate_bone_weight, get_bone_poem, get_weight_level, analyze_bonefate,
 )
-from .fortune_interpreter import generate_year_detail, generate_dayun_detail
-from .daily_fortune import calculate_daily_fortune, calculate_three_days_fortune
-from .daily_fortune_report import generate_daily_fortune_report
-from .hour_fortune import calculate_hour_fortunes, get_lucky_hours
+# 工具模块
+from src.core.utils import (
+    solar_to_lunar, cached, get_cache, clear_cache, cache_stats,
+    convert_to_true_solar_time, get_time_correction_info,
+    get_settings, Settings, get_logger, setup_logging,
+    FortuneTracerError, ValidationError, BirthInfoError,
+    CalculationError, AIInterpretationError,
+)
+# 紫微斗数
+from src.core.ziwei import calculate_ziwei_chart, generate_ziwei_analysis
 
 __all__ = [
     # 核心计算
@@ -95,5 +94,8 @@ __all__ = [
     "generate_daily_fortune_report",
     "calculate_hour_fortunes",
     "get_lucky_hours",
+    # 紫微斗数
+    "calculate_ziwei_chart",
+    "generate_ziwei_analysis",
 ]
 

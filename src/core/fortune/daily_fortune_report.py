@@ -2,9 +2,9 @@
 from datetime import date, timedelta
 from src.models.bazi_models import BaziChart, WuxingAnalysis
 from src.models.daily_fortune_models import DailyFortuneReport, get_fortune_level
-from src.core.daily_fortune_engine import DailyFortuneEngine
-from src.core.dimension_scorer import DimensionScorer
-from src.core.hour_fortune import calculate_hour_fortunes, get_lucky_hours
+from src.core.fortune.daily_fortune_engine import DailyFortuneEngine
+from src.core.fortune.dimension_scorer import DimensionScorer
+from src.core.fortune.hour_fortune import calculate_hour_fortunes, get_lucky_hours
 
 # 五行对应方位、颜色、数字
 WUXING_DIRECTION = {"木": "东方", "火": "南方", "土": "中宫", "金": "西方", "水": "北方"}

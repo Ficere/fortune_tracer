@@ -1,12 +1,12 @@
 """每日运势核心计算引擎 - 干支关系与十神分析"""
 from datetime import date
-from src.core.constants import (
+from src.core.bazi.constants import (
     TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_WUXING, DIZHI_CANGAN,
     DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING, DIZHI_SANHE,
     TIANGAN_HE, TIANGAN_CHONG, WUXING_SHENG, WUXING_KE
 )
 from src.models.bazi_models import BaziChart, WuxingAnalysis
-from src.core.shishen import _get_shishen, _is_yang_gan
+from src.core.bazi.shishen import _get_shishen, _is_yang_gan
 
 
 class DailyFortuneEngine:

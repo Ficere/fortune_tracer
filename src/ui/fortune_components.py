@@ -24,7 +24,6 @@ def render_dayun_detail_panel(
                 st.markdown(f"**年份**: {dayun.start_year}-{dayun.end_year}")
                 if detail:
                     st.markdown(f"**运势评分**: {detail.score:.0f}/100")
-                    st.markdown(f"**人生阶段**: {detail.stage}")
 
             with col2:
                 if detail:
@@ -80,15 +79,15 @@ def _render_dayun_yearly_detail(dayun, fortunes: list[YearFortune]):
             emoji = detail.emoji if detail else "😐"
             level = detail.level if detail else "平"
 
-            # 紧凑卡片
+            # 紧凑卡片 - 深色文字确保可读性
             bg_color = _get_level_color(level)
             st.markdown(f"""
             <div style='background:{bg_color};padding:6px;border-radius:6px;
-                text-align:center;margin-bottom:8px;font-size:12px'>
-                <div style='font-weight:bold'>{fortune.year}</div>
-                <div>{fortune.age}岁 {emoji}</div>
-                <div style='font-size:10px'>{fortune.ganzhi}</div>
-                <div style='font-size:11px'>{fortune.score:.0f}分</div>
+                text-align:center;margin-bottom:8px;font-size:12px;color:#1e293b'>
+                <div style='font-weight:bold;color:#0f172a'>{fortune.year}</div>
+                <div style='color:#334155'>{fortune.age}岁 {emoji}</div>
+                <div style='font-size:10px;color:#475569'>{fortune.ganzhi}</div>
+                <div style='font-size:11px;font-weight:bold;color:#1e40af'>{fortune.score:.0f}分</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -103,11 +102,11 @@ def _render_dayun_yearly_detail(dayun, fortunes: list[YearFortune]):
                 bg_color = _get_level_color(level)
                 st.markdown(f"""
                 <div style='background:{bg_color};padding:6px;border-radius:6px;
-                    text-align:center;margin-bottom:8px;font-size:12px'>
-                    <div style='font-weight:bold'>{fortune.year}</div>
-                    <div>{fortune.age}岁 {emoji}</div>
-                    <div style='font-size:10px'>{fortune.ganzhi}</div>
-                    <div style='font-size:11px'>{fortune.score:.0f}分</div>
+                    text-align:center;margin-bottom:8px;font-size:12px;color:#1e293b'>
+                    <div style='font-weight:bold;color:#0f172a'>{fortune.year}</div>
+                    <div style='color:#334155'>{fortune.age}岁 {emoji}</div>
+                    <div style='font-size:10px;color:#475569'>{fortune.ganzhi}</div>
+                    <div style='font-size:11px;font-weight:bold;color:#1e40af'>{fortune.score:.0f}分</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -126,14 +125,22 @@ def render_fortune_year_selector(fortunes: list[YearFortune]):
     """渲染流年选择器和详细解读"""
     if not fortunes:
         return
-    
+
+    from datetime import date
+
     # 创建年龄范围选择
     ages = [f.age for f in fortunes]
     min_age, max_age = min(ages), max(ages)
-    
+
+    # 计算用户当前年龄作为默认值
+    current_year = date.today().year
+    birth_year = fortunes[0].year - fortunes[0].age
+    current_age = current_year - birth_year
+    default_age = max(min_age, min(current_age, max_age))
+
     selected_age = st.slider(
         "选择年龄查看详细运势",
-        min_value=min_age, max_value=max_age, value=30
+        min_value=min_age, max_value=max_age, value=default_age
     )
     
     # 找到对应年份

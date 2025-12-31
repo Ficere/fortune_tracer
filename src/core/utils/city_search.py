@@ -5,8 +5,8 @@
 """
 from difflib import SequenceMatcher
 from functools import lru_cache
-from .cities_data import CityInfo, get_all_cities, get_cities_by_name
-from .solar_time import Location
+from src.core.utils.cities_data import CityInfo, get_all_cities, get_cities_by_name
+from src.core.utils.solar_time import Location
 
 
 @lru_cache(maxsize=1)
@@ -126,7 +126,7 @@ def get_search_suggestions(query: str) -> list[str]:
 
 def get_all_city_options() -> list[str]:
     """获取所有市级城市选项（用于下拉框）"""
-    from .cities_data import get_cities_by_level
+    from src.core.utils.cities_data import get_cities_by_level
     cities = get_cities_by_level("city")
     return [f"{c.name} ({c.province})" for c in cities]
 

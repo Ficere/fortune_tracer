@@ -2,7 +2,7 @@
 from typing import Optional
 from src.models import BaziChart, WuxingAnalysis, DaYunInfo
 from src.models.bazi_models import YearFortune, BaziPillar
-from src.core.constants import TIANGAN_WUXING, DIZHI_WUXING
+from src.core.bazi.constants import TIANGAN_WUXING, DIZHI_WUXING
 
 
 def serialize_bazi_for_ai(

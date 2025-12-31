@@ -74,27 +74,178 @@ def _call_ai_analysis(
         return _get_default_interpretation(bazi, wuxing)
 
 
-def _get_default_interpretation(bazi: BaziChart, wuxing: WuxingAnalysis) -> AIInterpretation:
-    """默认解读（无API时使用）"""
+def interpret_bazi_full(
+    bazi: BaziChart,
+    wuxing: WuxingAnalysis,
+    api_key: Optional[str] = None,
+    all_analysis: Optional[dict] = None,
+) -> AIInterpretation:
+    """综合所有测算结果进行AI解读"""
+    cfg = get_ai_config()
+    if api_key:
+        cfg = cfg.with_api_key(api_key)
+
+    if not cfg.is_valid():
+        return _get_full_default_interpretation(bazi, wuxing, all_analysis)
+
+    # 序列化完整数据
+    bazi_data = serialize_bazi_for_ai(bazi, wuxing, all_analysis.get("dayun") if all_analysis else None)
+
+    # 添加额外分析数据
+    if all_analysis:
+        bazi_data["extended_analysis"] = _serialize_all_analysis(all_analysis)
+
+    from .prompts import build_full_analysis_prompt
+    bazi_json = serialize_for_prompt(bazi_data)
+
+    return _call_ai_full_analysis(bazi_json, cfg, bazi, wuxing, all_analysis)
+
+
+def _call_ai_full_analysis(
+    bazi_json: str, cfg: AIConfig, bazi: BaziChart,
+    wuxing: WuxingAnalysis, all_analysis: Optional[dict]
+) -> AIInterpretation:
+    """调用AI进行完整分析"""
+    from .prompts import build_full_analysis_prompt
+    try:
+        client_kwargs = {"api_key": cfg.api_key, "timeout": cfg.timeout}
+        if cfg.base_url:
+            client_kwargs["base_url"] = cfg.base_url
+
+        client = OpenAI(**client_kwargs)
+        response = client.chat.completions.create(
+            model=cfg.model,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": build_full_analysis_prompt(bazi_json)}
+            ],
+            temperature=cfg.temperature,
+            max_tokens=cfg.max_tokens,
+            response_format={"type": "json_object"} if cfg.use_json_mode else None,
+        )
+        result = json.loads(response.choices[0].message.content)
+        return AIInterpretation(**result)
+    except Exception:
+        return _get_full_default_interpretation(bazi, wuxing, all_analysis)
+
+
+def _serialize_all_analysis(all_analysis: dict) -> dict:
+    """序列化所有扩展分析结果"""
+    result = {}
+
+    if shishen := all_analysis.get("shishen"):
+        result["shishen"] = {
+            "pattern": shishen.pattern,
+            "analysis": shishen.analysis,
+        }
+
+    if shensha := all_analysis.get("shensha"):
+        result["shensha"] = {
+            "ji_shen": shensha.ji_shen[:5],  # 吉神列表（字符串）
+            "xiong_sha": shensha.xiong_sha[:3],  # 凶煞列表（字符串）
+        }
+
+    if nayin := all_analysis.get("nayin"):
+        result["nayin"] = [
+            {"pillar": n.pillar_name, "nayin": n.nayin, "wuxing": n.wuxing}
+            for n in nayin
+        ]
+
+    if auxiliary := all_analysis.get("auxiliary"):
+        result["auxiliary"] = {
+            "ming_gong": auxiliary.ming_gong.ganzhi,
+            "shen_gong": auxiliary.shen_gong.ganzhi,
+            "tai_yuan": auxiliary.tai_yuan.ganzhi,
+        }
+
+    if bonefate := all_analysis.get("bonefate"):
+        result["bonefate"] = {
+            "weight": bonefate.weight,
+            "grade": bonefate.grade,
+            "poem": bonefate.poem[:50] if bonefate.poem else "",
+        }
+
+    return result
+
+
+def _get_full_default_interpretation(
+    bazi: BaziChart, wuxing: WuxingAnalysis, all_analysis: Optional[dict] = None
+) -> AIInterpretation:
+    """综合所有数据的默认解读"""
     dm = wuxing.day_master.value
     strength = wuxing.day_master_strength
-    
-    personality_map = {
+
+    # 性格解读（结合十神格局）
+    personality_base = {
         "木": "性格正直，有进取心，富有创造力",
         "火": "热情开朗，积极向上，具有领导力",
         "土": "稳重踏实，诚信可靠，重视家庭",
         "金": "意志坚定，果断干练，重义气",
         "水": "聪明机智，灵活变通，善于交际"
     }
-    
+    personality = f"日主为{dm}，{strength}。{personality_base.get(dm, '')}"
+
+    if all_analysis and (shishen := all_analysis.get("shishen")):
+        personality += f"。命局格局为「{shishen.pattern}」，{shishen.analysis}"
+
+    # 事业解读（结合神煞）
+    career = f"以{wuxing.favorable[0].value}相关行业为佳，事业发展稳健"
+    if all_analysis and (shensha := all_analysis.get("shensha")):
+        if shensha.ji_shen:
+            # 从 shensha_list 找到对应的详细信息
+            ji_name = shensha.ji_shen[0]
+            ji_info = next((s for s in shensha.shensha_list if s.name == ji_name), None)
+            desc = ji_info.description[:30] if ji_info and ji_info.description else "利于事业发展"
+            career += f"。命带「{ji_name}」，{desc}"
+
+    # 感情解读（结合纳音）
+    love = f"感情方面需注意与{wuxing.unfavorable[0].value}属性之人的相处"
+    if all_analysis and (nayin := all_analysis.get("nayin")) and len(nayin) > 2:
+        love += f"。日柱纳音为「{nayin[2].nayin}」，情感表达{_get_nayin_love_hint(nayin[2].wuxing)}"
+
+    # 健康解读
+    counts = wuxing.counts.to_dict()
+    weak_wx = min(counts, key=counts.get)
+    health = f"五行{weak_wx}偏弱，注意{_get_health_hint(weak_wx)}"
+
+    # 财运解读（结合称骨）
+    wealth = "财运平稳，适当投资可获收益"
+    if all_analysis and (bonefate := all_analysis.get("bonefate")):
+        wealth = f"称骨{bonefate.weight}两，{bonefate.grade}。{_get_wealth_hint(bonefate.weight)}"
+
+    # 综合评价
+    summary = f"命局{strength}，整体运势"
+    summary += ["需努力", "较为平衡", "较为顺利"][["身弱", "中和", "身旺"].index(strength)]
+    if all_analysis and (auxiliary := all_analysis.get("auxiliary")):
+        summary += f"。命宫{auxiliary.ming_gong.ganzhi}，身宫{auxiliary.shen_gong.ganzhi}"
+
     return AIInterpretation(
-        personality=f"日主为{dm}，{strength}。{personality_map.get(dm, '')}",
-        career=f"以{wuxing.favorable[0].value}相关行业为佳，事业发展稳健",
-        love=f"感情方面需注意与{wuxing.unfavorable[0].value}属性之人的相处",
-        health=f"注意{wuxing.counts.to_dict()}中较弱五行对应的身体部位",
-        wealth="财运平稳，适当投资可获收益",
-        summary=f"命局{strength}，整体运势{['需努力', '较为平衡', '较为顺利'][['身弱', '中和', '身旺'].index(strength)]}"
+        personality=personality, career=career, love=love,
+        health=health, wealth=wealth, summary=summary
     )
+
+
+def _get_nayin_love_hint(element: str) -> str:
+    hints = {"木": "温和细腻", "火": "热烈直接", "土": "稳重专一", "金": "理性克制", "水": "多情浪漫"}
+    return hints.get(element, "自然")
+
+
+def _get_health_hint(wx: str) -> str:
+    hints = {"木": "肝胆、眼睛保养", "火": "心脏、血压管理", "土": "脾胃消化系统",
+             "金": "呼吸系统、皮肤", "水": "肾脏、泌尿系统"}
+    return hints.get(wx, "整体调养")
+
+
+def _get_wealth_hint(weight: float) -> str:
+    if weight >= 5.0: return "财运亨通，富贵之命"
+    if weight >= 4.0: return "财运较好，中产之命"
+    if weight >= 3.0: return "财运平稳，需勤俭持家"
+    return "财运需努力，厚积薄发"
+
+
+def _get_default_interpretation(bazi: BaziChart, wuxing: WuxingAnalysis) -> AIInterpretation:
+    """默认解读（无API时使用，兼容旧接口）"""
+    return _get_full_default_interpretation(bazi, wuxing, None)
 
 
 def _calculate_year_score(
@@ -109,7 +260,7 @@ def _calculate_year_score(
     3. 五行生克关系（被生+5，被克-8）
     4. 年龄阶段微调（青年中年运势基数略高）
     """
-    from src.core.constants import DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING
+    from src.core.bazi.constants import DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING
 
     # 基础分60分（对应"平"级别）
     score = 60.0
@@ -160,8 +311,8 @@ def calculate_year_fortunes(
     with_detail: bool = True
 ) -> list[YearFortune]:
     """计算流年运势（从出生到指定年数）"""
-    from src.core.constants import TIANGAN, DIZHI, TIANGAN_WUXING
-    from src.core.fortune_interpreter import generate_year_detail
+    from src.core.bazi.constants import TIANGAN, DIZHI, TIANGAN_WUXING
+    from src.core.fortune.fortune_interpreter import generate_year_detail
     from src.models.bazi_models import YearFortuneDetail
 
     birth_year = bazi.birth_datetime.year

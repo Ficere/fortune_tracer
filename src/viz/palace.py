@@ -1,7 +1,7 @@
 """八字宫位图模块"""
 import plotly.graph_objects as go
 from src.models import BaziChart, WuxingAnalysis
-from src.core.constants import TIANGAN_WUXING, DIZHI_WUXING
+from src.core.bazi.constants import TIANGAN_WUXING, DIZHI_WUXING
 
 
 # 五行颜色映射

@@ -4,7 +4,7 @@ from src.models.compatibility_models import (
     CompatibilityResult, WuxingCompatibility, GanZhiRelations,
     CompatibilityAdvice, RelationshipType
 )
-from .constants import (
+from src.core.bazi.constants import (
     TIANGAN_HE, TIANGAN_CHONG, DIZHI_LIUHE, DIZHI_LIUCHONG,
     DIZHI_SANHE, DIZHI_XING, WUXING_SHENG, WUXING_KE
 )

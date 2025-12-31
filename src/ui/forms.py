@@ -12,8 +12,8 @@ def render_form(mode: str, api_key: str | None):
         _render_compatibility_form(api_key)
     elif mode == "📅 择日":
         _render_date_selection_form(api_key)
-    else:
-        _render_bonefate_form(api_key)
+    elif mode == "🌟 紫微斗数":
+        _render_ziwei_form(api_key)
 
 
 def _render_bazi_form(api_key: str | None):
@@ -108,19 +108,25 @@ def _render_bonefate_form(api_key: str | None):
     """称骨算命输入表单"""
     st.subheader("📝 出生信息")
     st.caption("袁天罡八字称骨算命")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         bf_date = st.date_input("出生日期", value=datetime(1990, 1, 1), key="bf_d")
         bf_lunar = st.checkbox("输入日期为农历", key="bf_lunar")
     with col2:
         bf_time = st.time_input("出生时间", value=time(12, 0), key="bf_t")
-    
+
     analyze_btn = st.button("⚖️ 开始称骨", type="primary", use_container_width=True)
-    
+
     if analyze_btn:
         from src.ui import render_bonefate_analysis
         bf_info = {"date": bf_date, "time": bf_time}
         st.divider()
         render_bonefate_analysis(bf_info, bf_lunar, api_key)
+
+
+def _render_ziwei_form(api_key: str | None):
+    """紫微斗数输入表单"""
+    from src.ui import render_ziwei_page
+    render_ziwei_page()
 

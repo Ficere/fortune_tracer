@@ -45,10 +45,16 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
         auxiliary = calculate_auxiliary_from_bazi(bazi)
         fortunes = calculate_year_fortunes(bazi, wuxing, years=91)  # 0-90岁
         bonefate = analyze_bonefate(true_solar_dt)
-        daily_report = generate_daily_fortune_report(date.today(), bazi, wuxing)  # 完整每日运势
+        # 生成今日、明日、后日三天运势报告
+        from datetime import timedelta
+        today = date.today()
+        daily_reports = [
+            generate_daily_fortune_report(today + timedelta(days=i), bazi, wuxing)
+            for i in range(3)
+        ]
 
-    # 每日运势（顶部展示）
-    render_full_daily_fortune(daily_report)
+    # 每日运势（顶部展示，支持三天切换）
+    render_full_daily_fortune(daily_reports)
     
     # 八字展示
     st.subheader("📜 您的生辰八字")
@@ -110,8 +116,16 @@ def render_bazi_analysis(birth_info: dict, api_key: str | None = None):
     with tab4:
         render_fortune_year_selector(fortunes)
     
-    # AI解读
-    render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes)
+    # AI解读 - 传入所有测算结果
+    all_analysis = {
+        "shishen": shishen,
+        "dayun": dayun_info,
+        "shensha": shensha,
+        "nayin": nayin_list,
+        "auxiliary": auxiliary,
+        "bonefate": bonefate,
+    }
+    render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes, all_analysis)
 
 
 def _render_wuxing_section(wuxing):

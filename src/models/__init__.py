@@ -42,6 +42,16 @@ from .bonefate_models import (
     BoneFateResult,
     BoneFateRequest,
 )
+from .ziwei_models import (
+    StarType,
+    Palace,
+    WuxingJu,
+    Star,
+    PalaceInfo,
+    ZiweiChart,
+    ZiweiAnalysis,
+    PalaceSummary,
+)
 
 __all__ = [
     # bazi_models
@@ -83,5 +93,14 @@ __all__ = [
     "SolarDate",
     "BoneFateResult",
     "BoneFateRequest",
+    # ziwei_models
+    "StarType",
+    "Palace",
+    "WuxingJu",
+    "Star",
+    "PalaceInfo",
+    "ZiweiChart",
+    "ZiweiAnalysis",
+    "PalaceSummary",
 ]
 

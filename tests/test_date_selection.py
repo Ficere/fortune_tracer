@@ -2,7 +2,7 @@
 import pytest
 from datetime import datetime, date, timedelta
 from src.core import calculate_bazi, analyze_wuxing, select_dates
-from src.core.date_selection import (
+from src.core.analysis.date_selection import (
     _get_clash_zodiac, _calculate_day_score, _get_suitable_avoid
 )
 from src.models.bazi_models import Gender

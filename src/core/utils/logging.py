@@ -5,7 +5,7 @@
 import logging
 import sys
 from typing import Optional
-from .config import get_settings
+from src.core.utils.config import get_settings
 
 
 # 日志器缓存

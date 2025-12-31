@@ -1,6 +1,6 @@
 """吉时推荐模块 - 分析12时辰运势"""
 from datetime import date
-from src.core.constants import (
+from src.core.bazi.constants import (
     TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING
 )
 from src.models.bazi_models import BaziChart, WuxingAnalysis

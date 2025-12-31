@@ -1,7 +1,7 @@
 """神煞计算模块 - 吉神凶煞分析"""
 from src.models import BaziChart
 from src.models.bazi_models import ShenShaInfo, ShenShaAnalysis
-from .shensha_data import (
+from src.core.bazi.shensha_data import (
     TIANYI_GUIREN, WENCHANG, YIMA, TAOHUA,
     HUAGAI, JIANGXING, YANGREN, LUSHEN, SHENSHA_DESC
 )

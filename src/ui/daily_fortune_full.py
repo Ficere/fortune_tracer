@@ -3,23 +3,53 @@ import streamlit as st
 from src.models.daily_fortune_models import DailyFortuneReport, DimensionScore
 
 
-def render_full_daily_fortune(report: DailyFortuneReport):
-    """渲染完整每日运势报告"""
-    st.markdown("### 📅 今日运势详解")
-    
+def render_full_daily_fortune(reports: list[DailyFortuneReport]):
+    """渲染完整每日运势报告，支持今日/明日/后日切换"""
+    if not reports:
+        return
+
+    st.markdown("### 📅 每日运势详解")
+
+    # 日期切换选项卡
+    day_labels = ["今日", "明日", "后日"]
+    cols = st.columns(3)
+
+    # 使用 session state 保存选中状态
+    if "daily_fortune_day" not in st.session_state:
+        st.session_state.daily_fortune_day = 0
+
+    for idx, (col, label) in enumerate(zip(cols, day_labels)):
+        with col:
+            if idx < len(reports):
+                r = reports[idx]
+                selected = st.session_state.daily_fortune_day == idx
+                btn_type = "primary" if selected else "secondary"
+                if st.button(
+                    f"{label} {r.total_emoji} {r.total_score:.0f}分",
+                    key=f"day_btn_{idx}",
+                    type=btn_type,
+                    use_container_width=True
+                ):
+                    st.session_state.daily_fortune_day = idx
+                    st.rerun()
+
+    # 显示选中日期的运势
+    selected_idx = min(st.session_state.daily_fortune_day, len(reports) - 1)
+    report = reports[selected_idx]
+
     # 总体运势区
     _render_total_section(report)
-    
+
     # 七维度详情
     _render_dimensions_section(report)
-    
+
     # 吉时推荐 + 行动指南
     col1, col2 = st.columns([1, 1])
     with col1:
         _render_lucky_hours(report)
     with col2:
         _render_action_guide(report)
-    
+
     # 增运建议
     _render_enhancement_section(report)
 
@@ -136,16 +166,23 @@ def _render_action_guide(report: DailyFortuneReport):
 def _render_enhancement_section(report: DailyFortuneReport):
     """渲染增运建议"""
     st.markdown("#### ✨ 增运贴士")
-    cols = st.columns(4)
-    info = [
+
+    # 幸运元素（三列展示）
+    cols = st.columns(3)
+    lucky_info = [
         ("🧭 吉方", report.lucky_direction),
         ("🎨 幸运色", report.lucky_color),
         ("🔢 幸运数", report.lucky_number),
-        ("💡 建议", report.enhancement_tips[0][:10] + "..." if report.enhancement_tips else "保持乐观"),
     ]
-    for col, (label, value) in zip(cols, info):
+    for col, (label, value) in zip(cols, lucky_info):
         with col:
             st.metric(label, value)
+
+    # 增运建议（完整显示）
+    if report.enhancement_tips:
+        st.markdown("**💡 增运建议**")
+        for tip in report.enhancement_tips[:3]:
+            st.info(f"• {tip}")
 
 
 def _get_level_gradient(level: str) -> str:

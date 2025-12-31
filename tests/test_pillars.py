@@ -2,7 +2,7 @@
 import pytest
 from datetime import datetime
 from src.core import calculate_bazi
-from src.core.pillars import (
+from src.core.bazi.pillars import (
     _get_year_pillar, _get_month_pillar,
     _get_day_pillar, _get_hour_pillar
 )

@@ -1,6 +1,6 @@
 """各维度评分计算器 - 拆分自dimension_scorer"""
 from src.models.daily_fortune_models import DimensionScore, get_fortune_level
-from src.core.dimension_advice import ADVICE_FUNCS
+from src.core.fortune.dimension_advice import ADVICE_FUNCS
 
 # 十神与各维度的关联权重
 SHISHEN_WEIGHTS = {

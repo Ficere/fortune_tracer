@@ -1,7 +1,7 @@
 """十神分析模块 - 日主与其他天干的五行生克阴阳关系"""
 from src.models import BaziChart
 from src.models.bazi_models import ShiShenInfo, ShiShenAnalysis
-from .constants import TIANGAN, TIANGAN_WUXING, WUXING_SHENG, WUXING_KE, DIZHI_CANGAN
+from src.core.bazi.constants import TIANGAN, TIANGAN_WUXING, WUXING_SHENG, WUXING_KE, DIZHI_CANGAN
 
 
 # 十神名称

@@ -19,7 +19,7 @@ class CityInfo(NamedTuple):
     full_name: str      # 完整名称（含后缀）
 
 
-_DATA_FILE = Path(__file__).parent.parent / "assets" / "latlng.json"
+_DATA_FILE = Path(__file__).parent.parent.parent / "assets" / "latlng.json"
 
 
 def _normalize_name(name: str) -> str:

@@ -1,7 +1,7 @@
 """五行分析模块"""
 from src.models import BaziChart, WuxingAnalysis
 from src.models.bazi_models import WuxingCount, Wuxing
-from .constants import TIANGAN_WUXING, DIZHI_WUXING, DIZHI_CANGAN, WUXING_SHENG, WUXING_KE
+from src.core.bazi.constants import TIANGAN_WUXING, DIZHI_WUXING, DIZHI_CANGAN, WUXING_SHENG, WUXING_KE
 
 
 def _count_wuxing(bazi: BaziChart) -> WuxingCount:

@@ -1,14 +1,20 @@
 """AI解读渲染组件"""
 import os
 import streamlit as st
-from src.ai.interpreter import interpret_bazi
+from src.ai.interpreter import interpret_bazi_full
 from src.ai import get_or_create_session
 from src.models import FortuneReport
 from .chat_component import render_chat_section
 
 
-def render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes):
-    """渲染AI解读和报告下载"""
+def render_ai_interpretation(
+    bazi, wuxing, api_key, birth_info, fortunes, all_analysis: dict | None = None
+):
+    """渲染AI解读和报告下载
+
+    Args:
+        all_analysis: 包含 shishen, dayun, shensha, nayin, auxiliary, bonefate 的字典
+    """
     st.subheader("🤖 AI命理解读")
 
     # API Key缺失提示
@@ -18,11 +24,11 @@ def render_ai_interpretation(bazi, wuxing, api_key, birth_info, fortunes):
                    "如需AI智能解读，请在左侧设置中填写API Key。")
 
     with st.spinner("正在分析您的命盘..."):
-        interpretation = interpret_bazi(bazi, wuxing, api_key)
+        interpretation = interpret_bazi_full(bazi, wuxing, api_key, all_analysis)
 
     _render_interpretation_cards(interpretation)
     _render_download_button(bazi, wuxing, interpretation, fortunes, birth_info)
-    _render_chat_area(bazi, wuxing, interpretation, api_key)
+    _render_chat_area(bazi, wuxing, interpretation, api_key, all_analysis)
 
 
 def _render_interpretation_cards(interpretation):
@@ -57,7 +63,7 @@ def _render_download_button(bazi, wuxing, interpretation, fortunes, birth_info):
     )
 
 
-def _render_chat_area(bazi, wuxing, interpretation, api_key):
+def _render_chat_area(bazi, wuxing, interpretation, api_key, all_analysis=None):
     """渲染LLM对话区域"""
     st.divider()
     session = get_or_create_session(st.session_state, "bazi")
@@ -67,5 +73,13 @@ def _render_chat_area(bazi, wuxing, interpretation, api_key):
     session.set_context("日主", f"{wuxing.day_master.value}({wuxing.day_master_strength})")
     session.set_context("喜用神", ", ".join(w.value for w in wuxing.favorable))
     session.set_context("性格特点", interpretation.personality[:50])
+
+    # 添加更多上下文
+    if all_analysis:
+        if all_analysis.get("shishen"):
+            session.set_context("格局", all_analysis["shishen"].pattern)
+        if all_analysis.get("bonefate"):
+            session.set_context("称骨", f"{all_analysis['bonefate'].weight}两")
+
     render_chat_section(session, api_key, "bazi", "🤖 八字问答")
 

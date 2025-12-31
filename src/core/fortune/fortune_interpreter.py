@@ -1,8 +1,8 @@
 """运势详细解读生成器"""
 from src.models import BaziChart, WuxingAnalysis
-from .constants import TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_WUXING
-from .constants import DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING
-from .fortune_data import (
+from src.core.bazi.constants import TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_WUXING
+from src.core.bazi.constants import DIZHI_LIUHE, DIZHI_LIUCHONG, DIZHI_XING
+from src.core.fortune.fortune_data import (
     WUXING_RELATION, get_fortune_level, get_age_stage,
     CAREER_ADVICE, LOVE_ADVICE, HEALTH_ADVICE, WEALTH_ADVICE, get_activities_by_age
 )

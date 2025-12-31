@@ -1,7 +1,7 @@
 """五行分析测试"""
 import pytest
 from src.core import calculate_bazi, analyze_wuxing
-from src.core.wuxing import (
+from src.core.bazi.wuxing import (
     _count_wuxing, _get_day_master,
     _analyze_strength, _get_favorable_unfavorable
 )

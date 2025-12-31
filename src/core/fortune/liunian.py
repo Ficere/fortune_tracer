@@ -2,9 +2,9 @@
 from datetime import datetime
 from src.models import BaziChart, WuxingAnalysis
 from src.models.bazi_models import LiuNianFortune, LiuNianAnalysis, DaYunInfo
-from .constants import TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_LIUHE, DIZHI_LIUCHONG
-from .nayin import get_nayin, get_nayin_wuxing
-from .liunian_data import WUXING_MATTERS, get_level
+from src.core.bazi.constants import TIANGAN, DIZHI, TIANGAN_WUXING, DIZHI_LIUHE, DIZHI_LIUCHONG
+from src.core.bazi.nayin import get_nayin, get_nayin_wuxing
+from src.core.fortune.liunian_data import WUXING_MATTERS, get_level
 
 
 def _get_year_ganzhi(year: int) -> tuple[str, str]:

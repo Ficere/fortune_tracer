@@ -5,7 +5,7 @@
 """
 from src.models import BaziChart
 from src.models.bazi_models import NaYinInfo
-from .constants import TIANGAN, DIZHI
+from src.core.bazi.constants import TIANGAN, DIZHI
 
 
 # 六十甲子纳音表

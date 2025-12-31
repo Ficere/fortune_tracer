@@ -1,7 +1,7 @@
 """辅助宫位计算模块 - 命宫、胎元、身宫"""
 from typing import NamedTuple
-from .constants import TIANGAN, DIZHI
-from .gong_descriptions import (
+from src.core.bazi.constants import TIANGAN, DIZHI
+from src.core.bazi.gong_descriptions import (
     MING_GONG_DESC, TAI_YUAN_DESC, SHEN_GONG_DESC, WU_HU_DUN
 )
 

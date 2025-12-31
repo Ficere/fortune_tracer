@@ -1,6 +1,6 @@
 """城市选择器组件 - 提供智能城市搜索和选择功能"""
 import streamlit as st
-from src.core.city_search import (
+from src.core.utils.city_search import (
     search_cities, get_all_city_options, parse_city_option
 )
 

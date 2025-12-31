@@ -7,7 +7,7 @@ from decimal import Decimal
 from datetime import datetime
 from lunarcalendar import Converter, Lunar, Solar
 
-from .bonefate_data import (
+from src.core.analysis.bonefate_data import (
     BONE_WEIGHT_POEMS, YEAR_WEIGHT_MATRIX, MONTH_WEIGHT,
     DAY_WEIGHT, HOUR_WEIGHT, DIZHI_INDEX, WEIGHT_LEVELS
 )

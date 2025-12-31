@@ -2,7 +2,7 @@
 import pytest
 from datetime import datetime
 from src.core import calculate_bazi, analyze_wuxing, calculate_compatibility
-from src.core.compatibility import (
+from src.core.analysis.compatibility import (
     _check_pair, _analyze_wuxing_compat,
     _analyze_ganzhi_relations, _calculate_score, _get_grade
 )
